@@ -326,8 +326,6 @@ function organizeQuestionsByChapter() {
             const modeContainer = document.querySelector('.modes');
             if (modeContainer) {
                 const warningElement = document.createElement('div');
-                warningElement.style.cssText = 'background-color: #fff3cd; color: #856404; padding: 10px; border-radius: 5px; margin-top: 15px;';
-                warningElement.innerHTML = 'Lưu ý: Có thể có vấn đề với việc phân chia câu hỏi theo chương. Vui lòng kiểm tra lại nội dung file câu hỏi.';
                 modeContainer.appendChild(warningElement);
             }
         }, 1000);

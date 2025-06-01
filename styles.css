@@ -7,17 +7,19 @@
 
 body {
     font-family: 'Roboto', Arial, sans-serif;
-    line-height: 1.6;
+    line-height: 1.5;
     color: #333;
     background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-    padding: 20px;
+    padding: 10px;
     min-height: 100vh;
+    font-size: 16px; /* Increased base font size for better mobile readability */
 }
 
 .container {
     max-width: 1200px;
+    width: 95%; /* Wider container for mobile */
     margin: 0 auto;
-    padding: 20px;
+    padding: 15px;
     background: white;
     border-radius: 15px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
@@ -26,14 +28,14 @@ body {
 /* Header */
 header {
     text-align: center;
-    margin-bottom: 40px;
-    padding: 20px 0;
+    margin-bottom: 20px; /* Adjusted for mobile */
+    padding: 10px 0; /* Reduced padding for mobile */
     border-bottom: 3px solid #007bff;
 }
 
 header h1 {
     color: #007bff;
-    font-size: 3rem;
+    font-size: 2rem; /* Adjusted for mobile */
     font-weight: bold;
 }
 
@@ -42,8 +44,8 @@ header h1 {
     background: white;
     border-radius: 10px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    padding: 30px;
-    margin-bottom: 40px;
+    padding: 15px; /* Reduced padding for mobile */
+    margin-bottom: 20px; /* Reduced margin for mobile */
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
@@ -54,33 +56,37 @@ header h1 {
 
 h2 {
     color: #007bff;
-    margin-bottom: 20px;
+    margin-bottom: 12px; /* Reduced margin for mobile */
     text-align: center;
-    font-size: 2rem;
+    font-size: 1.5rem; /* Adjusted for mobile */
 }
 
 /* Mode selection */
 .modes {
     text-align: center;
-    margin-bottom: 40px;
+    margin-bottom: 20px; /* Adjusted for mobile */
 }
 
 .mode-buttons {
     display: flex;
     justify-content: center;
-    gap: 20px;
-    margin-top: 20px;
+    gap: 10px; /* Reduced gap for mobile */
+    margin-top: 10px; /* Reduced margin for mobile */
+    flex-wrap: wrap; /* Allow wrapping on small screens */
 }
 
 .mode-btn {
-    padding: 15px 30px;
-    font-size: 1.2rem;
+    padding: 12px 20px; /* Adjusted padding for mobile */
+    font-size: 1rem; /* Adjusted for mobile */
     border: none;
     border-radius: 50px;
     background: linear-gradient(to right, #007bff, #0056b3);
     color: white;
     cursor: pointer;
     transition: background 0.3s ease, transform 0.2s ease;
+    margin-bottom: 5px; /* Added margin for mobile when buttons wrap */
+    width: 100%; /* Full width on very small screens */
+    max-width: 300px; /* Limit width */
 }
 
 .mode-btn:hover {
@@ -91,20 +97,21 @@ h2 {
 /* Chapter selection */
 .chapter-buttons {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 20px;
-    margin-top: 20px;
+    grid-template-columns: repeat(2, 1fr); /* 2 columns for mobile by default */
+    gap: 10px; /* Reduced gap for mobile */
+    margin-top: 10px; /* Reduced margin for mobile */
 }
 
 .chapter-btn {
-    padding: 15px;
-    font-size: 1.1rem;
+    padding: 10px; /* Reduced padding for mobile */
+    font-size: 1rem;
     border: 2px solid #007bff;
     border-radius: 10px;
     background: white;
     color: #007bff;
     cursor: pointer;
     transition: all 0.3s ease;
+    text-align: center; /* Ensure text is centered */
 }
 
 .chapter-btn:hover {
@@ -118,27 +125,29 @@ h2 {
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
-    margin-bottom: 20px;
-    padding-bottom: 15px;
+    margin-bottom: 15px; /* Reduced margin for desktop */
+    padding-bottom: 12px; /* Reduced padding for desktop */
     border-bottom: 2px solid #ddd;
 }
 
 #quiz-info {
     display: flex;
     gap: 20px;
+    font-size: 0.95rem; /* Adjusted font size for desktop */
 }
 
 #question-container {
-    margin-bottom: 30px;
+    margin-bottom: 25px; /* Reduced margin for desktop */
 }
 
+/* Question text and options */
 #question-text {
-    margin-bottom: 25px;
-    font-size: 1.5rem;
+    margin-bottom: 15px; /* Reduced margin for mobile */
+    font-size: 1.2rem; /* Reduced font size for mobile */
     font-weight: bold;
     color: #2c3e50;
-    line-height: 1.6;
-    padding: 15px;
+    line-height: 1.4; /* Reduced line height for mobile */
+    padding: 12px; /* Reduced padding for mobile */
     border-left: 4px solid #007bff;
     background-color: #f8f9fa;
     border-radius: 8px;
@@ -147,16 +156,16 @@ h2 {
 #options-container {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 10px; /* Reduced gap for mobile */
 }
 
 .option {
-    padding: 15px 20px;
+    padding: 12px; /* Adjusted padding for mobile */
     border: 1px solid #e0e0e0;
-    border-radius: 10px;
+    border-radius: 8px;
     cursor: pointer;
     transition: all 0.3s ease;
-    font-size: 1.1rem;
+    font-size: 1rem;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
     position: relative;
     overflow: hidden;
@@ -207,14 +216,14 @@ h2 {
 /* Controls */
 #controls {
     display: flex;
-    justify-content: space-between;
-    gap: 20px;
+    justify-content: center; /* Center on mobile */
+    gap: 8px; /* Reduced gap for mobile */
     flex-wrap: wrap;
-    margin-bottom: 25px; /* Add space between controls and navigation panel */
+    margin-bottom: 15px; /* Reduced margin for mobile */
 }
 
 .control-btn {
-    padding: 12px 25px;
+    padding: 10px 15px; /* Reduced padding for mobile */
     border: none;
     border-radius: 50px;
     background: linear-gradient(to right, #007bff, #0056b3);
@@ -222,7 +231,9 @@ h2 {
     cursor: pointer;
     transition: background 0.3s ease, transform 0.2s ease;
     font-weight: bold;
-    min-width: 120px;
+    min-width: 100px; /* Reduced for mobile */
+    font-size: 0.9rem; /* Smaller for mobile */
+    margin-bottom: 8px; /* Added spacing when buttons wrap */
 }
 
 .control-btn:hover {
@@ -238,8 +249,8 @@ h2 {
 
 /* Question Navigation Panel */
 #question-navigation-panel {
-    margin: 10px 0 30px 0;
-    padding: 20px;
+    margin: 5px 0 25px 0; /* Adjusted margins for desktop */
+    padding: 15px; /* Reduced padding for desktop */
     border: 1px solid #e0e0e0;
     border-radius: 10px;
     background-color: #f8f9fa;
@@ -252,16 +263,16 @@ h2 {
 }
 
 #question-navigation-panel h3 {
-    margin-bottom: 15px;
+    margin-bottom: 12px; /* Reduced margin for desktop */
     text-align: center;
     color: #007bff;
-    font-size: 1.2rem;
+    font-size: 1.1rem; /* Reduced font size for desktop */
 }
 
 #question-navigation-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(45px, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(6, 1fr); /* Fewer columns for mobile */
+    gap: 8px; /* Reduced gap for mobile */
     justify-content: center;
 }
 
@@ -269,8 +280,8 @@ h2 {
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 45px;
-    height: 45px;
+    width: 35px; /* Smaller for mobile */
+    height: 35px; /* Smaller for mobile */
     border-radius: 8px;
     border: 1px solid #007bff;
     background-color: white;
@@ -279,6 +290,7 @@ h2 {
     font-weight: bold;
     transition: all 0.3s ease;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    font-size: 0.85rem; /* Smaller for mobile */
 }
 
 .nav-question-btn:hover {
@@ -312,43 +324,43 @@ h2 {
 /* Results */
 #score-display {
     text-align: center;
-    margin-bottom: 30px;
-    padding: 20px;
+    margin-bottom: 25px; /* Reduced margin for desktop */
+    padding: 15px; /* Reduced padding for desktop */
     background-color: #e6f2ff;
     border-radius: 5px;
 }
 
 #score {
-    font-size: 1.5rem;
+    font-size: 1.4rem; /* Reduced font size for desktop */
     font-weight: bold;
     color: #0066cc;
 }
 
 #results-details {
-    margin-bottom: 30px;
+    margin-bottom: 25px; /* Reduced margin for desktop */
 }
 
 .repeated-questions-summary {
-    margin-top: 20px;
-    padding-top: 15px;
+    margin-top: 2px; /* Reduced margin for desktop */
+    padding-top: 2px; /* Reduced padding for desktop */
     border-top: 1px dashed #ccc;
 }
 
 .repeated-questions-summary h4 {
     color: #fd7e14;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
 }
 
 .repeated-questions-summary ul {
-    margin-left: 20px;
+    margin-left: 5px;
     padding-left: 0;
 }
 
 .repeated-questions-summary li {
-    margin-bottom: 8px;
+    margin-bottom: 5px;
     list-style-type: none;
     position: relative;
-    padding-left: 20px;
+    padding-left: 5px;
 }
 
 .repeated-questions-summary li:before {
@@ -359,9 +371,10 @@ h2 {
 }
 
 .result-item {
-    padding: 15px;
-    margin-bottom: 10px;
+    padding: 12px; /* Reduced padding for desktop */
+    margin-bottom: 8px; /* Reduced margin for desktop */
     border-radius: 5px;
+    font-size: 0.95rem; /* Added font size for desktop */
 }
 
 .result-item.correct {
@@ -375,39 +388,41 @@ h2 {
 #result-controls {
     display: flex;
     justify-content: center;
-    gap: 20px;
+    gap: 15px; /* Reduced gap for desktop */
 }
 
 /* Review */
 .review-item {
-    margin-bottom: 25px;
-    padding-bottom: 20px;
+    margin-bottom: 20px; /* Reduced margin for desktop */
+    padding-bottom: 15px; /* Reduced padding for desktop */
     border-bottom: 1px solid #ddd;
 }
 
 .review-question {
     font-weight: bold;
-    margin-bottom: 10px;
+    margin-bottom: 8px; /* Reduced margin for desktop */
+    font-size: 1.05rem; /* Added font size for desktop */
 }
 
 .repeat-badge {
     display: inline-block;
-    font-size: 0.85rem;
+    font-size: 0.8rem; /* Reduced font size for desktop */
     color: #fff;
     background-color: #fd7e14;
-    padding: 2px 6px;
-    border-radius: 4px;
-    margin-left: 8px;
+    padding: 1px 5px; /* Reduced padding for desktop */
+    border-radius: 3px; /* Reduced border radius for desktop */
+    margin-left: 6px; /* Reduced margin for desktop */
 }
 
 .review-options {
-    margin-left: 20px;
+    margin-left: 15px; /* Reduced margin for desktop */
 }
 
 .review-option {
-    padding: 8px;
-    margin-bottom: 5px;
+    padding: 6px; /* Reduced padding for desktop */
+    margin-bottom: 4px; /* Reduced margin for desktop */
     border-radius: 3px;
+    font-size: 0.95rem; /* Added font size for desktop */
 }
 
 .user-answer {
@@ -490,22 +505,109 @@ footer a:hover {
 }
 
 /* Responsive design */
-@media (max-width: 768px) {
-    .container {
-        padding: 15px;
+@media (min-width: 1200px) {
+    /* Desktop specific overrides */
+    body {
+        font-size: 14px; /* Smaller font size for desktop */
     }
     
-    .mode-buttons, #controls {
-        flex-direction: column;
+    .container {
+        width: 70%; /* Narrower container for very large screens */
+        max-width: 1000px; /* Limit max width for readability */
+        padding: 20px;
+    }
+    
+    #question-navigation-grid {
+        grid-template-columns: repeat(12, 1fr); /* More columns for large screens */
     }
     
     .chapter-buttons {
-        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        grid-template-columns: repeat(3, 1fr); /* Fixed 3 columns for desktop */
+        max-width: 800px; /* Limit width for better layout */
+        margin: 15px auto; /* Center the grid */
+    }
+    
+    .mode-btn {
+        width: auto; /* Auto width on desktop */
+        max-width: none;
+    }
+    
+    header h1 {
+        font-size: 2.5rem;
+    }
+    
+    h2 {
+        font-size: 1.8rem;
+    }
+    
+    #controls {
+        justify-content: space-between;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 1199px) {
+    /* Tablet specific styles */
+    body {
+        font-size: 15px;
+    }
+    
+    .container {
+        width: 85%;
+    }
+    
+    .mode-btn {
+        width: auto;
+        max-width: none;
+    }
+    
+    #question-navigation-grid {
+        grid-template-columns: repeat(8, 1fr);
+    }
+    
+    .chapter-buttons {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    #controls {
+        justify-content: space-between;
+    }
+}
+
+@media (max-width: 767px) {
+    /* Mobile specific styles */
+    .container {
+        padding: 12px;
+        width: 98%; /* Full width on mobile */
+    }
+    
+    .mode-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .mode-btn {
+        width: 100%;
+        max-width: 300px;
+    }
+    
+    #controls {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .control-btn {
+        width: 100%;
+        max-width: 250px;
+    }
+    
+    .chapter-buttons {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
     }
     
     #quiz-header {
         flex-direction: column;
-        align-items: flex-start;
+        align-items: center;
     }
     
     #quiz-info {
@@ -513,18 +615,32 @@ footer a:hover {
         width: 100%;
         justify-content: space-between;
     }
+    
+    #question-navigation-panel h3 {
+        font-size: 1rem;
+    }
 }
 
 @media (max-width: 480px) {
+    /* Small mobile specific styles */
     .chapter-buttons {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr; /* Single column for very small screens */
     }
     
-    h1 {
-        font-size: 2rem;
+    header h1 {
+        font-size: 1.8rem;
     }
     
     h2 {
-        font-size: 1.5rem;
+        font-size: 1.4rem;
+    }
+    
+    #question-navigation-grid {
+        grid-template-columns: repeat(5, 1fr); /* Even fewer columns for very small screens */
+    }
+    
+    .nav-question-btn {
+        width: 32px;
+        height: 32px;
     }
 }
