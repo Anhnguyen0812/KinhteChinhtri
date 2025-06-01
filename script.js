@@ -11,6 +11,7 @@ let elapsedTime = 0;
 let chapters = {};
 let showingFeedback = false; // Flag to indicate if we're showing feedback
 let navigationPanelVisible = true; // Flag to track navigation panel visibility
+let originalQuestionCount = 0; // Track the original number of questions before adding repeats
 
 // DOM Elements
 const chapterModeBtn = document.getElementById('chapter-mode');
@@ -158,6 +159,10 @@ async function initialize() {
             return; // Stop further initialization if no questions are available
         }
         organizeQuestionsByChapter();
+        
+        // Update random mode button with total question count
+        const randomModeBtn = document.getElementById('random-mode');
+        randomModeBtn.innerHTML = `Ôn luyện ngẫu nhiên <span class="question-count">(40/${questions.length} câu)</span>`;
     } catch (error) {
         console.error('Error initializing quiz:', error);
         // Most specific alerts should be handled by loadQuestions/parseQuestions.
@@ -338,6 +343,9 @@ function organizeQuestionsByChapter() {
     });
     console.log(chapterStats);
     
+    // Update chapter buttons with question counts
+    updateChapterButtonsWithCount();
+    
     // Analyze for potential issues (large differences between chapters)
     const chapterSizes = Object.keys(chapters).map(ch => ({
         chapter: ch,
@@ -385,6 +393,9 @@ function organizeQuestionsByChapter() {
 function showChapterSelection() {
     hideAllSections();
     chapterSelection.classList.remove('hidden');
+    
+    // Update chapter buttons with question counts
+    updateChapterButtonsWithCount();
 }
 
 function startChapterMode(chapterNumber) {
@@ -395,9 +406,7 @@ function startChapterMode(chapterNumber) {
     if (!chapters || Object.keys(chapters).length === 0) {
         alert('Không có dữ liệu câu hỏi. Vui lòng kiểm tra file câu hỏi và tải lại trang.');
         return;
-    }
-
-    // Check if the requested chapter exists
+    }    // Check if the requested chapter exists
     currentQuestions = chapters[chapterNumber] || [];
     console.log(`Chapter ${chapterNumber} has ${currentQuestions.length} questions`);
     
@@ -405,14 +414,16 @@ function startChapterMode(chapterNumber) {
         alert(`Không có câu hỏi cho Chương ${chapterNumber}. Vui lòng kiểm tra lại nội dung file câu hỏi.`);
         return;
     }
-
+    
     // Initialize quiz state
+    originalQuestionCount = currentQuestions.length; // Store the original count
     userAnswers = Array(currentQuestions.length).fill(null);
     currentQuestionIndex = 0;
     incorrectQuestions = [];
     repeatQuestionsQueue = [];
 
-    quizTitle.textContent = `Ôn luyện Chương ${chapterNumber}`;
+    // Update quiz title with chapter number and question count
+    updateQuizTitleWithCount(chapterNumber);
     startQuiz();
 }
 
@@ -421,9 +432,9 @@ function startRandomMode() {
         alert('Không đủ câu hỏi để tạo đề ngẫu nhiên. Vui lòng tải lại trang.');
         return;
     }
-    
-    // Get 40 random questions
+      // Get 40 random questions
     currentQuestions = getRandomQuestions(questions, 40);
+    originalQuestionCount = currentQuestions.length; // Store the original count
     userAnswers = Array(currentQuestions.length).fill(null);
     currentQuestionIndex = 0;
     incorrectQuestions = [];
@@ -470,7 +481,7 @@ function startQuiz() {
     setTimeout(() => {
         keyboardTip.style.opacity = '0';
         setTimeout(() => keyboardTip.remove(), 500);
-    }, 2000);
+    }, 3000);
 }
 
 function displayQuestion() {
@@ -483,9 +494,9 @@ function displayQuestion() {
     const oldFeedback = document.querySelectorAll('.feedback-message');
     oldFeedback.forEach(el => el.remove());
     
-    // If we have questions to repeat, prioritize them
-    if (repeatQuestionsQueue.length > 0 && currentQuestionIndex >= currentQuestions.length - 1) {
-        // If we're at the end, start showing repeat questions
+    // If we have questions to repeat from the repeat queue, prioritize them
+    if (repeatQuestionsQueue.length > 0 && currentQuestionIndex >= currentQuestions.length - repeatQuestionsQueue.length) {
+        // If we're at the repeat section, start showing repeat questions
         const repeatQuestionInfo = repeatQuestionsQueue.shift();
         const repeatQuestion = repeatQuestionInfo.question;
         
@@ -494,7 +505,7 @@ function displayQuestion() {
         feedbackElement.className = 'feedback-message';
         feedbackElement.innerHTML = `
             <p>Đây là câu hỏi bạn đã trả lời sai trước đó. Hãy thử lại.</p>
-            <p><small>Còn ${repeatQuestionsQueue.length + 1} câu cần ôn tập lại</small></p>
+            <p><small>Còn ${repeatQuestionsQueue.length} câu cần ôn tập lại</small></p>
         `;
         questionText.parentNode.insertBefore(feedbackElement, questionText);
         
@@ -526,8 +537,8 @@ function displayQuestion() {
             optionsContainer.appendChild(optionElement);
         });
         
-        // Update question count (but don't change the count for repeated questions)
-        questionCountElement.textContent = `Câu hỏi: ${currentQuestionIndex + 1}/${currentQuestions.length} (Ôn tập lại)`;
+        // Update question count
+        questionCountElement.textContent = `Câu hỏi: ${currentQuestionIndex + 1}/${currentQuestions.length}`;
         
         // Update submit button visibility
         if (repeatQuestionsQueue.length === 0) {
@@ -616,8 +627,7 @@ function selectOption(optionIndex, repeatQuestion = null) {
                 option.classList.add('correct');
             } else {
                 option.classList.add('incorrect');
-                
-                // For wrong answers, schedule to repeat the question
+                  // For wrong answers, schedule to repeat the question
                 if (!repeatQuestion) { // Only add to repeat queue if this is not already a repeat
                     // Add to incorrect questions tracking
                     incorrectQuestions.push({
@@ -631,11 +641,14 @@ function selectOption(optionIndex, repeatQuestion = null) {
                         repeatCount: 1
                     });
                     
-                    // Schedule to repeat after 2 more questions
-                    repeatQuestionsQueue.push({
-                        question: question,
-                        repeatCount: 2
-                    });
+                    // Add the question to the end of currentQuestions array
+                    currentQuestions.push(question);
+                    
+                    // Extend userAnswers array to match the new length
+                    userAnswers.push(null);
+                    
+                    // Update the navigation grid to reflect the new total
+                    generateNavigationGrid();
                 }
             }
         } else if (index === question.correctAnswer) {
@@ -651,20 +664,18 @@ function selectOption(optionIndex, repeatQuestion = null) {
     if (optionIndex === question.correctAnswer) {
         feedbackElement.innerHTML = `
             <p class="correct-feedback">Chính xác! Đáp án đúng là ${String.fromCharCode(65 + question.correctAnswer)}.</p>
-        `;
-    } else {
+        `;    } else {
         feedbackElement.innerHTML = `
             <p class="incorrect-feedback">Sai rồi! Đáp án đúng là ${String.fromCharCode(65 + question.correctAnswer)}.</p>
-            <p>Câu hỏi này sẽ được lặp lại để bạn ôn tập thêm.</p>
+            <p>Câu hỏi này sẽ được thêm vào cuối bài kiểm tra để bạn ôn tập lại.</p>
         `;
     }
     
     // Add the feedback below the options
     optionsContainer.parentNode.insertBefore(feedbackElement, optionsContainer.nextSibling);
-    
-    // Enable navigation buttons after showing feedback
+      // Enable navigation buttons after showing feedback
     prevBtn.disabled = currentQuestionIndex === 0;
-    nextBtn.disabled = currentQuestionIndex === currentQuestions.length - 1 && repeatQuestionsQueue.length === 0;
+    nextBtn.disabled = currentQuestionIndex === currentQuestions.length - 1;
     
     // Update navigation grid to show answered status
     updateNavigationGrid();
@@ -693,20 +704,14 @@ function showNextQuestion() {
         return;
     }
     
-    // Check if we're at the end of the regular questions
+    // Check if we're at the end of all questions
     if (currentQuestionIndex >= currentQuestions.length - 1) {
-        // If we have questions to repeat, show them
-        if (repeatQuestionsQueue.length > 0) {
-            console.log("Moving to repeat questions");
-            displayQuestion(); // This will display the next repeat question
-        } else {
-            // No more questions, submit or stay at last question
-            if (confirm('Bạn đã hoàn thành tất cả các câu hỏi. Bạn có muốn nộp bài?')) {
-                submitQuiz();
-            }
+        // No more questions, submit or stay at last question
+        if (confirm('Bạn đã hoàn thành tất cả các câu hỏi. Bạn có muốn nộp bài?')) {
+            submitQuiz();
         }
     } else {
-        // Still have regular questions, go to next
+        // Still have questions, go to next
         console.log("Moving to next question: " + (currentQuestionIndex + 1));
         currentQuestionIndex++;
         displayQuestion();
@@ -767,6 +772,20 @@ function calculateScore() {
     return correctCount;
 }
 
+// New function to calculate the number of correct answers for original questions only
+function calculateOriginalCorrectAnswers() {
+    let correctCount = 0;
+    
+    // Only count the original questions (not the repeated ones that were added later)
+    for (let i = 0; i < originalQuestionCount; i++) {
+        if (userAnswers[i] === currentQuestions[i].correctAnswer) {
+            correctCount++;
+        }
+    }
+    
+    return correctCount;
+}
+
 function showResults(score) {
     if (score === undefined) {
         score = calculateScore();
@@ -775,8 +794,11 @@ function showResults(score) {
     hideAllSections();
     resultsContainer.classList.remove('hidden');
     
-    // Display score
-    scoreElement.textContent = `${score}/${currentQuestions.length}`;
+    // Calculate how many original questions were answered correctly
+    const originalCorrectCount = calculateOriginalCorrectAnswers();
+    
+    // Display score - only show correct answers out of original chapter questions
+    scoreElement.textContent = `${originalCorrectCount}/${originalQuestionCount}`;
     
     // Display time taken
     const minutes = Math.floor(elapsedTime / 60);
@@ -788,15 +810,14 @@ function showResults(score) {
     
     // Add summary of correct/incorrect answers
     const summaryElement = document.createElement('div');
-    
-    // Include information about incorrect questions that were repeated
+      // Include information about incorrect questions that were repeated
     const uniqueIncorrectCount = new Set(incorrectQuestions.map(q => q.questionIndex)).size;
     
     summaryElement.innerHTML = `
-        <p>Số câu đúng: ${score}</p>
-        <p>Số câu sai: ${currentQuestions.length - score}</p>
+        <p>Số câu đúng: ${originalCorrectCount}</p>
+        <p>Số câu sai: ${originalQuestionCount - originalCorrectCount}</p>
         <p>Số câu bạn đã làm sai và được ôn tập lại: ${uniqueIncorrectCount}</p>
-        <p>Tỷ lệ đúng: ${Math.round((score / currentQuestions.length) * 100)}%</p>
+        <p>Tỷ lệ đúng: ${Math.round((originalCorrectCount / originalQuestionCount) * 100)}%</p>
     `;
     
     // Add specific info about which questions were repeated
@@ -1016,3 +1037,23 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 1000);
     }
 });
+
+function updateChapterButtonsWithCount() {
+    // Get all chapter buttons
+    const chapterButtons = document.querySelectorAll('.chapter-btn');
+    
+    // Update each button with the question count
+    chapterButtons.forEach(button => {
+        const chapterNumber = button.getAttribute('data-chapter');
+        const questionsInChapter = chapters[chapterNumber] ? chapters[chapterNumber].length : 0;
+        
+        // Update button text to include question count
+        button.innerHTML = `Chương ${chapterNumber} <span class="question-count">(${questionsInChapter} câu)</span>`;
+    });
+}
+
+// Add a function to update chapter title with question count in quiz mode
+function updateQuizTitleWithCount(chapterNumber) {
+    const questionsInChapter = chapters[chapterNumber] ? chapters[chapterNumber].length : 0;
+    quizTitle.textContent = `Ôn luyện Chương ${chapterNumber} (${questionsInChapter} câu)`;
+}

@@ -109,28 +109,109 @@ h2 {
 }
 
 .chapter-btn {
-    padding: 12px 15px; /* Increased padding for better touch targets */
-    font-size: 1rem;
-    border: 2px solid #007bff;
-    border-radius: 10px;
-    background: white;
-    color: #007bff;
+    position: relative;
+    padding: 12px 20px;
+    margin: 10px;
+    background-color: #fff;
+    color: #333;
+    border: 2px solid #ddd;
+    border-radius: 8px;
     cursor: pointer;
+    font-size: 16px;
     transition: all 0.3s ease;
-    text-align: center; /* Ensure text is centered */
-    box-shadow: 0 2px 5px rgba(0, 123, 255, 0.1);
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
+    min-width: 150px;
 }
 
 .chapter-btn:hover {
-    background: #e9f5ff;
-    border-color: #0056b3;
+    background-color: #f0f7ff;
+    border-color: #4a90e2;
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.15);
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
 }
 
-.chapter-btn:active {
+.chapter-btn .question-count {
+    font-size: 0.85em;
+    color: #666;
+    margin-left: 5px;
+    display: inline-block;
+}
+
+/* Mode selection */
+.modes {
+    text-align: center;
+    margin-bottom: 20px; /* Adjusted for mobile */
+}
+
+.mode-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px; /* Reduced gap for mobile */
+    margin-top: 10px; /* Reduced margin for mobile */
+    flex-wrap: wrap; /* Allow wrapping on small screens */
+}
+
+.mode-btn {
+    padding: 12px 20px; /* Adjusted padding for mobile */
+    font-size: 1rem; /* Adjusted for mobile */
+    border: none;
+    border-radius: 50px;
+    background: linear-gradient(to right, #007bff, #0056b3);
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 5px; /* Added margin for mobile when buttons wrap */
+    width: 100%; /* Full width on very small screens */
+    max-width: 300px; /* Limit width */
+    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
+}
+
+.mode-btn:hover {
+    background: linear-gradient(to right, #0056b3, #003f7f);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 123, 255, 0.3);
+}
+
+.mode-btn:active {
     transform: translateY(1px);
-    box-shadow: 0 1px 3px rgba(0, 123, 255, 0.1);
+    box-shadow: 0 2px 5px rgba(0, 123, 255, 0.2);
+}
+
+/* Chapter selection */
+.chapter-buttons {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 2 columns for mobile by default */
+    gap: 10px; /* Reduced gap for mobile */
+    margin-top: 10px; /* Reduced margin for mobile */
+}
+
+.chapter-btn {
+    position: relative;
+    padding: 12px 20px;
+    margin: 10px;
+    background-color: #fff;
+    color: #333;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
+    min-width: 150px;
+}
+
+.chapter-btn:hover {
+    background-color: #f0f7ff;
+    border-color: #4a90e2;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
+}
+
+.chapter-btn .question-count {
+    font-size: 0.85em;
+    color: #666;
+    margin-left: 5px;
+    display: inline-block;
 }
 
 /* Quiz container */
