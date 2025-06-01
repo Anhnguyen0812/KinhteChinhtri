@@ -40,18 +40,26 @@
                     <span id="timer">Thời gian: 00:00</span>
                 </div>
             </div>
-            
-            <div id="question-container">
+              <div id="question-container">
                 <h3 id="question-text">Câu hỏi sẽ hiển thị ở đây</h3>
                 <div id="options-container">
                     <!-- Options will be inserted here by JavaScript -->
                 </div>
             </div>
-              <div id="controls">
+            
+            <div id="controls">
                 <button id="prev-btn" class="control-btn" disabled>Câu trước</button>
                 <button id="next-btn" class="control-btn">Câu sau</button>
                 <button id="submit-btn" class="control-btn hidden">Nộp bài</button>
                 <button id="back-to-main-btn" class="control-btn main-btn">Quay lại màn hình chính</button>
+                <button id="toggle-navigation-btn" class="control-btn">Hiện/Ẩn bảng điều hướng</button>
+            </div>
+            
+            <div id="question-navigation-panel" class="hidden">
+                <h3>Bảng điều hướng câu hỏi</h3>
+                <div id="question-navigation-grid">
+                    <!-- Question buttons will be inserted here by JavaScript -->
+                </div>
             </div>
         </div>
         
@@ -79,7 +87,8 @@
         </div>
     </div>
       <footer>
-        <p>Ôn luyện Kinh tế Chính trị &copy; 2025</p>
+        <p class="text-center">Ôn luyện Kinh tế Chính trị &copy; 2025</p>
+        <p class="text-center">Link 840 câu hỏi trắc nghiệm KTCT: <a href="https://www.studocu.vn/vn/document/truong-dai-hoc-luat-thanh-pho-ho-chi-minh/kinh-te-chinh-tri-m-l/840-cau-trac-nghiem-ktct/124383496" target="_blank" rel="noopener noreferrer">Xem tài liệu</a></p>
     </footer>
     
     <script src="script.js"></script>

@@ -10,6 +10,7 @@ let startTime;
 let elapsedTime = 0;
 let chapters = {};
 let showingFeedback = false; // Flag to indicate if we're showing feedback
+let navigationPanelVisible = true; // Flag to track navigation panel visibility
 
 // DOM Elements
 const chapterModeBtn = document.getElementById('chapter-mode');
@@ -35,6 +36,18 @@ const reviewContainer = document.getElementById('review-container');
 const reviewQuestions = document.getElementById('review-questions');
 const backToResultsBtn = document.getElementById('back-to-results');
 const backToMainBtn = document.getElementById('back-to-main-btn');
+const questionNavigationPanel = document.getElementById('question-navigation-panel');
+const questionNavigationGrid = document.getElementById('question-navigation-grid');
+const toggleNavigationBtn = document.getElementById('toggle-navigation-btn');
+
+// Function to hide all sections
+function hideAllSections() {
+    document.querySelector('.modes').classList.add('hidden');
+    chapterSelection.classList.add('hidden');
+    quizContainer.classList.add('hidden');
+    resultsContainer.classList.add('hidden');
+    reviewContainer.classList.add('hidden');
+}
 
 // Event listeners
 document.addEventListener('DOMContentLoaded', initialize);
@@ -62,11 +75,26 @@ nextBtn.addEventListener('click', function(e) {
     }
 });
 
+// Add keyboard navigation with arrow keys
+document.addEventListener('keydown', function(e) {
+    // Only respond to arrow keys if we're in quiz mode (quiz container is visible)
+    if (!quizContainer.classList.contains('hidden')) {
+        if (e.key === 'ArrowLeft' && !prevBtn.disabled) {
+            e.preventDefault(); // Prevent scrolling
+            showPreviousQuestion();
+        } else if (e.key === 'ArrowRight' && !nextBtn.disabled) {
+            e.preventDefault(); // Prevent scrolling
+            showNextQuestion();
+        }
+    }
+});
+
 submitBtn.addEventListener('click', submitQuiz);
 reviewBtn.addEventListener('click', showReview);
 restartBtn.addEventListener('click', restartQuiz);
 backToResultsBtn.addEventListener('click', showResults);
 backToMainBtn.addEventListener('click', backToMainScreen);
+toggleNavigationBtn.addEventListener('click', toggleNavigationPanel);
 
 // Functions
 async function initialize() {
@@ -370,6 +398,9 @@ function startQuiz() {
     if (timer) clearInterval(timer);
     timer = setInterval(updateTimer, 1000);
     
+    // Generate navigation grid
+    generateNavigationGrid();
+    
     displayQuestion();
     
     // Initially hide the submit button until we reach the end
@@ -427,10 +458,12 @@ function displayQuestion() {
             submitBtn.classList.add('hidden');
         }
         
+        // Update navigation grid to show current question
+        updateNavigationGrid();
+        
         return;
     }
-    
-    const question = currentQuestions[currentQuestionIndex];
+      const question = currentQuestions[currentQuestionIndex];
     
     // Update question count
     questionCountElement.textContent = `Câu hỏi: ${currentQuestionIndex + 1}/${currentQuestions.length}`;
@@ -457,6 +490,9 @@ function displayQuestion() {
     
     // Update navigation buttons
     updateNavigationButtons();
+    
+    // Update navigation grid to highlight current question
+    updateNavigationGrid();
 }
 
 function selectOption(optionIndex, repeatQuestion = null) {
@@ -530,11 +566,16 @@ function selectOption(optionIndex, repeatQuestion = null) {
             <p>Câu hỏi này sẽ được lặp lại để bạn ôn tập thêm.</p>
         `;
     }
-      // Add the feedback below the options
+    
+    // Add the feedback below the options
     optionsContainer.parentNode.insertBefore(feedbackElement, optionsContainer.nextSibling);
-      // Enable navigation buttons after showing feedback
+    
+    // Enable navigation buttons after showing feedback
     prevBtn.disabled = currentQuestionIndex === 0;
     nextBtn.disabled = currentQuestionIndex === currentQuestions.length - 1 && repeatQuestionsQueue.length === 0;
+    
+    // Update navigation grid to show answered status
+    updateNavigationGrid();
     
     // Allow navigation after showing feedback
     showingFeedback = false;
@@ -547,6 +588,7 @@ function showPreviousQuestion() {
     if (currentQuestionIndex > 0) {
         currentQuestionIndex--;
         displayQuestion();
+        // Navigation grid is updated in displayQuestion
     }
 }
 
@@ -563,6 +605,7 @@ function showNextQuestion() {
         if (repeatQuestionsQueue.length > 0) {
             console.log("Moving to repeat questions");
             displayQuestion();
+            // Navigation grid is updated in displayQuestion
         } else {
             // No more questions, submit or stay at last question
             if (confirm('Bạn đã hoàn thành tất cả các câu hỏi. Bạn có muốn nộp bài?')) {
@@ -574,6 +617,7 @@ function showNextQuestion() {
         console.log("Moving to next question: " + (currentQuestionIndex + 1));
         currentQuestionIndex++;
         displayQuestion();
+        // Navigation grid is updated in displayQuestion
     }
 }
 
@@ -752,6 +796,8 @@ function showReview() {
 
 function restartQuiz() {
     hideAllSections();
+    // Reset navigation panel state
+    navigationPanelVisible = true;
     document.querySelector('.modes').classList.remove('hidden');
 }
 
@@ -771,6 +817,9 @@ function backToMainScreen() {
             incorrectQuestions = [];
             repeatQuestionsQueue = [];
             elapsedTime = 0;
+            
+            // Reset navigation panel state
+            navigationPanelVisible = true;
             
             // Return to the main screen
             hideAllSections();
@@ -796,10 +845,70 @@ function updateNavigationButtons() {
     }
 }
 
-function hideAllSections() {
-    const sections = document.querySelectorAll('.section');
-    sections.forEach(section => section.classList.add('hidden'));
-    document.querySelector('.modes').classList.add('hidden');
+function generateNavigationGrid() {
+    // Clear any existing navigation buttons
+    questionNavigationGrid.innerHTML = '';
+    
+    // Create a button for each question
+    currentQuestions.forEach((_, index) => {
+        const navButton = document.createElement('button');
+        navButton.className = 'nav-question-btn';
+        navButton.textContent = index + 1;
+        
+        // Mark current question
+        if (index === currentQuestionIndex) {
+            navButton.classList.add('current');
+        }
+        
+        // Mark answered questions
+        if (userAnswers[index] !== null) {
+            navButton.classList.add('answered');
+        }
+        
+        // Add click event to navigate to the question
+        navButton.addEventListener('click', () => {
+            // Only navigate if not showing feedback
+            if (!showingFeedback) {
+                currentQuestionIndex = index;
+                displayQuestion();
+            }
+        });
+        
+        questionNavigationGrid.appendChild(navButton);
+    });
+    
+    // Show the navigation panel
+    questionNavigationPanel.classList.remove('hidden');
+}
+
+function updateNavigationGrid() {
+    // Update all navigation buttons
+    const navButtons = questionNavigationGrid.querySelectorAll('.nav-question-btn');
+    
+    navButtons.forEach((button, index) => {
+        // Clear existing classes
+        button.classList.remove('current', 'answered');
+        
+        // Mark current question
+        if (index === currentQuestionIndex) {
+            button.classList.add('current');
+        }
+        
+        // Mark answered questions
+        if (userAnswers[index] !== null) {
+            button.classList.add('answered');
+        }
+    });
+}
+
+function toggleNavigationPanel() {
+    navigationPanelVisible = !navigationPanelVisible;
+    
+    if (navigationPanelVisible) {
+        questionNavigationPanel.classList.remove('hidden');
+    } else {
+        questionNavigationPanel.classList.add('hidden');
+    }
 }
 
 // Alert about how to use the application once it loads
