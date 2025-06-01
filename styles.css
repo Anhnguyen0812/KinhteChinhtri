@@ -50,7 +50,6 @@ header h1 {
 }
 
 .section:hover {
-    transform: translateY(-5px);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
@@ -216,14 +215,14 @@ h2 {
 /* Controls */
 #controls {
     display: flex;
-    justify-content: center; /* Center on mobile */
-    gap: 8px; /* Reduced gap for mobile */
+    justify-content: space-between; /* Space buttons evenly */
     flex-wrap: wrap;
-    margin-bottom: 15px; /* Reduced margin for mobile */
+    margin-bottom: 15px;
+    gap: 8px;
 }
 
 .control-btn {
-    padding: 10px 15px; /* Reduced padding for mobile */
+    padding: 10px 15px;
     border: none;
     border-radius: 50px;
     background: linear-gradient(to right, #007bff, #0056b3);
@@ -231,9 +230,33 @@ h2 {
     cursor: pointer;
     transition: background 0.3s ease, transform 0.2s ease;
     font-weight: bold;
-    min-width: 100px; /* Reduced for mobile */
-    font-size: 0.9rem; /* Smaller for mobile */
-    margin-bottom: 8px; /* Added spacing when buttons wrap */
+    min-width: 45px; /* Smaller for icon-only on mobile */
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Button text and icon styling */
+.btn-text {
+    display: inline-block;
+}
+
+.btn-icon {
+    display: none; /* Hide icons by default (for desktop) */
+}
+
+/* Navigation button group */
+#prev-btn, #next-btn {
+    flex: 1; /* Take equal space */
+    max-width: 48%; /* Prevent from taking full width */
+}
+
+/* Utility button group */
+#back-to-main-btn, #toggle-navigation-btn {
+    flex: 1; /* Take equal space */
+    max-width: 48%; /* Prevent from taking full width */
 }
 
 .control-btn:hover {
@@ -442,7 +465,6 @@ h2 {
 /* Main and Submit button styles */
 .main-btn {
     background: linear-gradient(to right, #6c757d, #495057);
-    margin-left: auto;
 }
 
 .main-btn:hover {
@@ -543,6 +565,24 @@ footer a:hover {
     #controls {
         justify-content: space-between;
     }
+    
+    /* For desktop, show button text and hide icons */
+    .btn-text {
+        display: inline-block;
+    }
+    
+    .btn-icon {
+        display: none;
+    }
+    
+    .control-btn {
+        min-width: 110px;
+        padding: 10px 20px;
+    }
+    
+    #back-to-main-btn {
+        margin-left: auto; /* Push to right side on desktop */
+    }
 }
 
 @media (min-width: 768px) and (max-width: 1199px) {
@@ -571,6 +611,19 @@ footer a:hover {
     #controls {
         justify-content: space-between;
     }
+    
+    /* For tablet, show both text and icons */
+    .btn-text {
+        display: inline-block;
+    }
+    
+    .btn-icon {
+        display: none;
+    }
+    
+    .control-btn {
+        min-width: 100px;
+    }
 }
 
 @media (max-width: 767px) {
@@ -590,14 +643,43 @@ footer a:hover {
         max-width: 300px;
     }
     
+    /* Control buttons on mobile */
     #controls {
-        flex-direction: column;
-        align-items: center;
+        justify-content: space-between;
+        gap: 5px;
     }
     
     .control-btn {
+        padding: 10px;
+        min-width: 45px;
+        max-width: 49%;
+    }
+    
+    /* Show icons, hide text on mobile */
+    .btn-text {
+        display: none;
+    }
+    
+    .btn-icon {
+        display: inline-block;
+        font-size: 1.2rem; /* Larger icons */
+    }
+    
+    /* Navigation buttons positioning */
+    #prev-btn, #next-btn {
+        width: 48%;
+        margin-bottom: 10px;
+    }
+    
+    /* Utility buttons positioning */
+    #back-to-main-btn, #toggle-navigation-btn {
+        width: 48%;
+    }
+    
+    /* Submit button full width */
+    #submit-btn {
         width: 100%;
-        max-width: 250px;
+        max-width: 100%;
     }
     
     .chapter-buttons {
