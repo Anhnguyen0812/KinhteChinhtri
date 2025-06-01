@@ -1,0 +1,813 @@
+// Global variables
+let questions = [];
+let currentQuestions = [];
+let currentQuestionIndex = 0;
+let userAnswers = [];
+let incorrectQuestions = []; // Track questions that were answered incorrectly
+let repeatQuestionsQueue = []; // Queue for questions to repeat
+let timer;
+let startTime;
+let elapsedTime = 0;
+let chapters = {};
+let showingFeedback = false; // Flag to indicate if we're showing feedback
+
+// DOM Elements
+const chapterModeBtn = document.getElementById('chapter-mode');
+const randomModeBtn = document.getElementById('random-mode');
+const chapterSelection = document.getElementById('chapter-selection');
+const chapterButtons = document.querySelectorAll('.chapter-btn');
+const quizContainer = document.getElementById('quiz-container');
+const quizTitle = document.getElementById('quiz-title');
+const questionCountElement = document.getElementById('question-count');
+const timerElement = document.getElementById('timer');
+const questionText = document.getElementById('question-text');
+const optionsContainer = document.getElementById('options-container');
+const prevBtn = document.getElementById('prev-btn');
+const nextBtn = document.getElementById('next-btn');
+const submitBtn = document.getElementById('submit-btn');
+const resultsContainer = document.getElementById('results-container');
+const scoreElement = document.getElementById('score');
+const timeTakenElement = document.getElementById('time-taken');
+const resultsDetails = document.getElementById('results-details');
+const reviewBtn = document.getElementById('review-btn');
+const restartBtn = document.getElementById('restart-btn');
+const reviewContainer = document.getElementById('review-container');
+const reviewQuestions = document.getElementById('review-questions');
+const backToResultsBtn = document.getElementById('back-to-results');
+const backToMainBtn = document.getElementById('back-to-main-btn');
+
+// Event listeners
+document.addEventListener('DOMContentLoaded', initialize);
+chapterModeBtn.addEventListener('click', showChapterSelection);
+randomModeBtn.addEventListener('click', startRandomMode);
+chapterButtons.forEach(button => {
+    button.addEventListener('click', () => {
+        const chapter = button.getAttribute('data-chapter');
+        startChapterMode(chapter);
+    });
+});
+
+// Add event listeners for navigation with improved click handling
+prevBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+    if (!this.disabled) {
+        showPreviousQuestion();
+    }
+});
+
+nextBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+    if (!this.disabled) {
+        showNextQuestion();
+    }
+});
+
+submitBtn.addEventListener('click', submitQuiz);
+reviewBtn.addEventListener('click', showReview);
+restartBtn.addEventListener('click', restartQuiz);
+backToResultsBtn.addEventListener('click', showResults);
+backToMainBtn.addEventListener('click', backToMainScreen);
+
+// Functions
+async function initialize() {
+    try {
+        await loadQuestions(); // Await the promise from loadQuestions
+        if (questions.length === 0) {
+            // loadQuestions or parseQuestions should have alerted the user.
+            // This console log is for developer feedback.
+            console.error('Initialization failed: No questions were loaded or parsed.');
+            // Optionally, display a persistent error message in the UI if desired.
+            return; // Stop further initialization if no questions are available
+        }
+        organizeQuestionsByChapter();
+    } catch (error) {
+        console.error('Error initializing quiz:', error);
+        // Most specific alerts should be handled by loadQuestions/parseQuestions.
+        // This is a fallback for unexpected errors from the loadQuestions promise rejection.
+        alert('Có lỗi nghiêm trọng trong quá trình khởi tạo. Vui lòng tải lại trang.');
+    }
+}
+
+function loadQuestions() {
+    return new Promise(async (resolve, reject) => {
+        try {
+            // Try to fetch the file using fetch API
+            const response = await fetch('ktct.txt');
+            if (!response.ok) {
+                console.warn(`Fetch failed with status ${response.status}: ${response.statusText}. Trying XMLHttpRequest.`);
+                // Don't throw yet, fall through to XHR attempt
+            } else {
+                const data = await response.text();
+                parseQuestions(data); // Modifies global 'questions'
+                if (questions.length > 0) {
+                    resolve();
+                } else {
+                    // parseQuestions should alert if it found content but parsed no questions.
+                    // If data was empty, parseQuestions might not alert.
+                    console.error('Fetched data but no questions were parsed.');
+                    // Alert is likely handled by parseQuestions if content was present but unparseable.
+                    reject(new Error('No questions parsed from fetched data.'));
+                }
+                return; // Exit if fetch was successful
+            }
+        } catch (fetchError) {
+            console.warn('Fetch API error:', fetchError, 'Trying XMLHttpRequest...');
+        }
+
+        // If fetch was not ok or threw an error, try XMLHttpRequest
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', 'ktct.txt', true);
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+                if (xhr.status === 200 || (xhr.status === 0 && xhr.responseText)) { // status 0 for local file access
+                    parseQuestions(xhr.responseText); // Modifies global 'questions'
+                    if (questions.length > 0) {
+                        resolve();
+                    } else {
+                        console.error('XHR succeeded but no questions were parsed.');
+                        // Alert is likely handled by parseQuestions.
+                        reject(new Error('No questions parsed from XHR data.'));
+                    }
+                } else {
+                    console.error(`Failed to fetch file using XMLHttpRequest: Status ${xhr.status}, ${xhr.statusText}`);
+                    alert('Có lỗi khi tải câu hỏi (XHR). Vui lòng kiểm tra file ktct.txt và tải lại trang.');
+                    questions = []; // Ensure questions is empty on error
+                    reject(new Error(`XHR failed with status: ${xhr.statusText || xhr.status}`));
+                }
+            }
+        };
+        xhr.onerror = function() { // Handle network errors for XHR
+            console.error('XMLHttpRequest network error.');
+            alert('Lỗi mạng khi tải câu hỏi (XHR). Vui lòng kiểm tra kết nối và tải lại trang.');
+            questions = []; // Ensure questions is empty on error
+            reject(new Error('XHR network error.'));
+        };
+        xhr.send();
+    });
+}
+
+function parseQuestions(data) {
+    questions = []; // Reset global questions array before parsing
+    try {
+        if (!data || data.trim() === '') {
+            console.warn('Provided data for parsing is empty.');
+            alert('File câu hỏi (ktct.txt) rỗng hoặc không có nội dung. Vui lòng kiểm tra lại.');
+            return;
+        }
+
+        const chapterBlocks = data.split(/Chương\s+(?=\d)/i);
+        if (!data.toLowerCase().startsWith('chương')) {
+            chapterBlocks.shift(); // Remove content before the first "Chương" if any
+        }
+
+        if (chapterBlocks.length === 0) {
+            console.warn('No "Chương n" delimiters found in the data.');
+            alert('Không tìm thấy định dạng chương (Chương n) trong file câu hỏi. Vui lòng kiểm tra lại file ktct.txt.');
+            return;
+        }
+
+        chapterBlocks.forEach((block, index) => {
+            if (!block.trim()) return;
+
+            const lines = block.trim().split(/\r?\n/).map(line => line.trim()).filter(line => line);
+            if (lines.length === 0) {
+                console.warn(`Chapter block for index ${index} is empty after trimming and splitting.`);
+                return;
+            }
+
+            const chapterHeaderLine = lines.shift();
+            const chapterMatch = chapterHeaderLine.match(/^(\d+)/);
+            const chapterIdentifier = chapterMatch ? chapterMatch[1] : `UnknownChapter${index + 1}`;
+            console.log(`Processing Chapter: ${chapterIdentifier}, Header: "${chapterHeaderLine}".`);
+
+            let currentQuestionText = '';
+            let currentOptions = []; // Stores option texts
+            let currentOptionLetters = []; // Stores 'A', 'B', 'C', 'D' for parsed options
+            let correctAnswerInfo = null; // Stores { letter: 'A', text: '...' } from the '•' line
+
+            for (const line of lines) {
+                const correctAnswerMatch = line.match(/^•\s*([A-D])\.\s*(.*);$/i);
+                const optionMatch = line.match(/^([A-D])\.\s*(.*)$/i);
+
+                if (correctAnswerMatch) {
+                    correctAnswerInfo = { letter: correctAnswerMatch[1].toUpperCase(), text: correctAnswerMatch[2].trim() };
+
+                    // This line marks the end of a question block. Assemble and push.
+                    if (currentQuestionText.trim() && currentOptions.length > 0 && correctAnswerInfo) {
+                        const correctIndex = currentOptionLetters.indexOf(correctAnswerInfo.letter);
+
+                        if (correctIndex !== -1) {
+                            questions.push({
+                                text: currentQuestionText.trim(),
+                                options: currentOptions,
+                                correctAnswer: correctIndex,
+                                chapter: chapterIdentifier
+                            });
+                        } else {
+                            console.warn(`Skipped question in chapter ${chapterIdentifier}: Correct answer letter '${correctAnswerInfo.letter}' from '•' line not found in parsed option letters [${currentOptionLetters.join(', ')}].\nText: "${currentQuestionText.trim()}"\nOptions: ${JSON.stringify(currentOptions)}\nCorrect Answer Line: "${line}"`);
+                        }
+                    } else {
+                        console.warn(`Skipped incomplete question block in Chapter ${chapterIdentifier} when '•' line encountered:\nText: "${currentQuestionText.trim()}"\nOptions: ${JSON.stringify(currentOptions)} (Letters: ${JSON.stringify(currentOptionLetters)})\nCorrect Answer Info: ${JSON.stringify(correctAnswerInfo)}`);
+                    }
+                    // Reset for the next question
+                    currentQuestionText = '';
+                    currentOptions = [];
+                    currentOptionLetters = [];
+                    correctAnswerInfo = null;
+
+                } else if (optionMatch) {
+                    // This is an option line like "A. Some text"
+                    currentOptionLetters.push(optionMatch[1].toUpperCase());
+                    currentOptions.push(optionMatch[2].trim());
+                } else if (line.endsWith(';') && !line.startsWith('•')) { // End of a question text line (and not a correct answer line)
+                    currentQuestionText += (currentQuestionText ? ' ' : '') + line.slice(0, -1).trim();
+                } else if (line.trim() !== '') {
+                    // Part of a (potentially multi-line) question text, not an option, not ending with ';'
+                    currentQuestionText += (currentQuestionText ? ' ' : '') + line.trim();
+                }
+            }
+        });
+
+        console.log('Successfully parsed questions. Total questions loaded:', questions.length);
+        if (questions.length === 0 && data.trim() !== '') {
+            alert('Không tìm thấy câu hỏi nào hợp lệ trong file. Vui lòng kiểm tra định dạng của các câu hỏi và đáp án trong file ktct.txt.');
+        }
+
+    } catch (parseError) {
+        console.error('Critical error during parsing questions:', parseError);
+        questions = [];
+        alert('Có lỗi nghiêm trọng khi xử lý nội dung file câu hỏi. Vui lòng kiểm tra định dạng file ktct.txt và thử tải lại trang.');
+    }
+}
+
+function organizeQuestionsByChapter() {
+    chapters = {};
+    
+    questions.forEach(question => {
+        if (!chapters[question.chapter]) {
+            chapters[question.chapter] = [];
+        }
+        chapters[question.chapter].push(question);
+    });
+    
+    // Enhanced logging for debugging
+    console.log(`Organized questions into ${Object.keys(chapters).length} chapters`);
+    
+    // Print detailed chapter statistics
+    let chapterStats = "Chapter statistics:\n";
+    Object.keys(chapters).sort((a, b) => parseInt(a) - parseInt(b)).forEach(chNum => {
+        chapterStats += `Chapter ${chNum}: ${chapters[chNum].length} questions\n`;
+    });
+    console.log(chapterStats);
+    
+    // Analyze for potential issues (large differences between chapters)
+    const chapterSizes = Object.keys(chapters).map(ch => ({
+        chapter: ch,
+        count: chapters[ch].length
+    })).sort((a, b) => parseInt(a.chapter) - parseInt(b.chapter));
+    
+    // Check for missing chapters or very small chapters
+    let potentialIssues = false;
+    for (let i = 0; i < chapterSizes.length - 1; i++) {
+        const current = chapterSizes[i];
+        const next = chapterSizes[i + 1];
+        
+        // Check for missing chapters in sequence
+        if (parseInt(next.chapter) - parseInt(current.chapter) > 1) {
+            console.warn(`Potential issue: Missing chapters between ${current.chapter} and ${next.chapter}`);
+            potentialIssues = true;
+        }
+        
+        // Check for very small chapters (might indicate parsing issues)
+        if (current.count < 5) {
+            console.warn(`Potential issue: Chapter ${current.chapter} has only ${current.count} questions`);
+            potentialIssues = true;
+        }
+        
+        // Check for large discrepancies in chapter sizes
+        if (next.count > current.count * 3 || current.count > next.count * 3) {
+            console.warn(`Potential issue: Large size difference between Chapter ${current.chapter} (${current.count} questions) and Chapter ${next.chapter} (${next.count} questions)`);
+            potentialIssues = true;
+        }
+    }
+    
+    // If we found potential issues, add a marker to the UI
+    if (potentialIssues) {
+        console.warn("Potential chapter organization issues detected. Check the console for details.");
+        setTimeout(() => {
+            const modeContainer = document.querySelector('.modes');
+            if (modeContainer) {
+                const warningElement = document.createElement('div');
+                warningElement.style.cssText = 'background-color: #fff3cd; color: #856404; padding: 10px; border-radius: 5px; margin-top: 15px;';
+                warningElement.innerHTML = 'Lưu ý: Có thể có vấn đề với việc phân chia câu hỏi theo chương. Vui lòng kiểm tra lại nội dung file câu hỏi.';
+                modeContainer.appendChild(warningElement);
+            }
+        }, 1000);
+    }
+}
+
+function showChapterSelection() {
+    hideAllSections();
+    chapterSelection.classList.remove('hidden');
+}
+
+function startChapterMode(chapterNumber) {
+    // Ensure chapters are properly loaded
+    if (!chapters || Object.keys(chapters).length === 0) {
+        alert('Không có dữ liệu câu hỏi. Vui lòng kiểm tra file câu hỏi và tải lại trang.');
+        return;
+    }
+
+    // Check if the requested chapter exists
+    currentQuestions = chapters[chapterNumber] || [];
+    if (currentQuestions.length === 0) {
+        alert(`Không có câu hỏi cho Chương ${chapterNumber}. Vui lòng kiểm tra lại nội dung file câu hỏi.`);
+        return;
+    }
+
+    // Initialize quiz state
+    userAnswers = Array(currentQuestions.length).fill(null);
+    currentQuestionIndex = 0;
+    incorrectQuestions = [];
+    repeatQuestionsQueue = [];
+
+    quizTitle.textContent = `Ôn luyện Chương ${chapterNumber}`;
+    startQuiz();
+}
+
+function startRandomMode() {
+    if (questions.length < 40) {
+        alert('Không đủ câu hỏi để tạo đề ngẫu nhiên. Vui lòng tải lại trang.');
+        return;
+    }
+    
+    // Get 40 random questions
+    currentQuestions = getRandomQuestions(questions, 40);
+    userAnswers = Array(currentQuestions.length).fill(null);
+    currentQuestionIndex = 0;
+    incorrectQuestions = [];
+    repeatQuestionsQueue = [];
+    
+    quizTitle.textContent = 'Đề thi ngẫu nhiên (40 câu)';
+    startQuiz();
+}
+
+function getRandomQuestions(allQuestions, count) {
+    const shuffled = [...allQuestions].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, count);
+}
+
+function startQuiz() {
+    hideAllSections();
+    quizContainer.classList.remove('hidden');
+    
+    // Reset feedback state
+    showingFeedback = false;
+    
+    // Reset and start timer
+    startTime = new Date();
+    elapsedTime = 0;
+    if (timer) clearInterval(timer);
+    timer = setInterval(updateTimer, 1000);
+    
+    displayQuestion();
+    
+    // Initially hide the submit button until we reach the end
+    submitBtn.classList.add('hidden');
+}
+
+function displayQuestion() {
+    console.log("Displaying question: " + (currentQuestionIndex + 1));
+    
+    // Clear any previous feedback
+    showingFeedback = false;
+    
+    // Remove any previous feedback messages
+    const oldFeedback = document.querySelectorAll('.feedback-message');
+    oldFeedback.forEach(el => el.remove());
+    
+    // If we have questions to repeat, prioritize them
+    if (repeatQuestionsQueue.length > 0 && currentQuestionIndex >= currentQuestions.length - 1) {
+        // If we're at the end, start showing repeat questions
+        const repeatQuestionInfo = repeatQuestionsQueue.shift();
+        const repeatQuestion = repeatQuestionInfo.question;
+        
+        // Create a feedback element at the top to indicate this is a repeated question
+        const feedbackElement = document.createElement('div');
+        feedbackElement.className = 'feedback-message';
+        feedbackElement.innerHTML = `
+            <p>Đây là câu hỏi bạn đã trả lời sai trước đó. Hãy thử lại.</p>
+            <p><small>Còn ${repeatQuestionsQueue.length + 1} câu cần ôn tập lại</small></p>
+        `;
+        questionText.parentNode.insertBefore(feedbackElement, questionText);
+        
+        // Display the repeated question
+        questionText.textContent = `${currentQuestionIndex + 1}. ${repeatQuestion.text}`;
+        
+        // Clear options container
+        optionsContainer.innerHTML = '';
+        
+        // Add options for the repeated question
+        repeatQuestion.options.forEach((option, index) => {
+            const optionElement = document.createElement('div');
+            optionElement.className = 'option';
+            optionElement.textContent = `${String.fromCharCode(65 + index)}. ${option}`; // A, B, C, D...
+            
+            optionElement.addEventListener('click', () => selectOption(index, repeatQuestion));
+            optionsContainer.appendChild(optionElement);
+        });
+        
+        // Update question count (but don't change the count for repeated questions)
+        questionCountElement.textContent = `Câu hỏi: ${currentQuestionIndex + 1}/${currentQuestions.length} (Ôn tập lại)`;
+        
+        // Update submit button visibility
+        if (repeatQuestionsQueue.length === 0) {
+            submitBtn.classList.remove('hidden');
+        } else {
+            submitBtn.classList.add('hidden');
+        }
+        
+        return;
+    }
+    
+    const question = currentQuestions[currentQuestionIndex];
+    
+    // Update question count
+    questionCountElement.textContent = `Câu hỏi: ${currentQuestionIndex + 1}/${currentQuestions.length}`;
+    
+    // Display question text
+    questionText.textContent = `${currentQuestionIndex + 1}. ${question.text}`;
+    
+    // Clear options container
+    optionsContainer.innerHTML = '';
+    
+    // Add options
+    question.options.forEach((option, index) => {
+        const optionElement = document.createElement('div');
+        optionElement.className = 'option';
+        optionElement.textContent = `${String.fromCharCode(65 + index)}. ${option}`; // A, B, C, D...
+        
+        // Mark selected option if user has answered this question
+        if (userAnswers[currentQuestionIndex] === index) {
+            optionElement.classList.add('selected');
+        }
+        
+        optionElement.addEventListener('click', () => selectOption(index));
+        optionsContainer.appendChild(optionElement);    });
+    
+    // Update navigation buttons
+    updateNavigationButtons();
+}
+
+function selectOption(optionIndex, repeatQuestion = null) {
+    // If we're already showing feedback, ignore further clicks
+    if (showingFeedback) return;
+    
+    // Get the current question (either regular or repeated)
+    const question = repeatQuestion || currentQuestions[currentQuestionIndex];
+    
+    // Save user's answer
+    if (!repeatQuestion) {
+        userAnswers[currentQuestionIndex] = optionIndex;
+    }
+    
+    // Mark this as a feedback state
+    showingFeedback = true;
+    
+    // Update UI to reflect selection
+    const options = optionsContainer.querySelectorAll('.option');
+    options.forEach((option, index) => {
+        // First, clear any previous feedback classes
+        option.classList.remove('selected', 'correct', 'incorrect');
+        
+        if (index === optionIndex) {
+            option.classList.add('selected');
+            
+            // Check if answer is correct and apply appropriate class
+            if (index === question.correctAnswer) {
+                option.classList.add('correct');
+            } else {
+                option.classList.add('incorrect');
+                
+                // For wrong answers, schedule to repeat the question
+                if (!repeatQuestion) { // Only add to repeat queue if this is not already a repeat
+                    // Add to incorrect questions tracking
+                    incorrectQuestions.push({
+                        questionIndex: currentQuestionIndex,
+                        question: question
+                    });
+                    
+                    // Schedule to repeat immediately
+                    repeatQuestionsQueue.push({
+                        question: question,
+                        repeatCount: 1
+                    });
+                    
+                    // Schedule to repeat after 2 more questions
+                    repeatQuestionsQueue.push({
+                        question: question,
+                        repeatCount: 2
+                    });
+                }
+            }
+        } else if (index === question.correctAnswer) {
+            // Always highlight the correct answer
+            option.classList.add('correct');
+        }
+    });
+    
+    // Create and show feedback message
+    const feedbackElement = document.createElement('div');
+    feedbackElement.className = 'feedback-message';
+    
+    if (optionIndex === question.correctAnswer) {
+        feedbackElement.innerHTML = `
+            <p class="correct-feedback">Chính xác! Đáp án đúng là ${String.fromCharCode(65 + question.correctAnswer)}.</p>
+        `;
+    } else {
+        feedbackElement.innerHTML = `
+            <p class="incorrect-feedback">Sai rồi! Đáp án đúng là ${String.fromCharCode(65 + question.correctAnswer)}.</p>
+            <p>Câu hỏi này sẽ được lặp lại để bạn ôn tập thêm.</p>
+        `;
+    }
+      // Add the feedback below the options
+    optionsContainer.parentNode.insertBefore(feedbackElement, optionsContainer.nextSibling);
+      // Enable navigation buttons after showing feedback
+    prevBtn.disabled = currentQuestionIndex === 0;
+    nextBtn.disabled = currentQuestionIndex === currentQuestions.length - 1 && repeatQuestionsQueue.length === 0;
+    
+    // Allow navigation after showing feedback
+    showingFeedback = false;
+}
+
+function showPreviousQuestion() {
+    // If we're showing feedback, ignore navigation
+    if (showingFeedback) return;
+    
+    if (currentQuestionIndex > 0) {
+        currentQuestionIndex--;
+        displayQuestion();
+    }
+}
+
+function showNextQuestion() {
+    // If we're showing feedback, ignore navigation
+    if (showingFeedback) {
+        console.log("Navigation blocked - feedback is showing");
+        return;
+    }
+    
+    // Check if we're at the end of the regular questions
+    if (currentQuestionIndex >= currentQuestions.length - 1) {
+        // If we have questions to repeat, show them
+        if (repeatQuestionsQueue.length > 0) {
+            console.log("Moving to repeat questions");
+            displayQuestion();
+        } else {
+            // No more questions, submit or stay at last question
+            if (confirm('Bạn đã hoàn thành tất cả các câu hỏi. Bạn có muốn nộp bài?')) {
+                submitQuiz();
+            }
+        }
+    } else {
+        // Still have regular questions, go to next
+        console.log("Moving to next question: " + (currentQuestionIndex + 1));
+        currentQuestionIndex++;
+        displayQuestion();
+    }
+}
+
+function updateTimer() {
+    const now = new Date();
+    elapsedTime = Math.floor((now - startTime) / 1000);
+    
+    const minutes = Math.floor(elapsedTime / 60);
+    const seconds = elapsedTime % 60;
+    
+    timerElement.textContent = `Thời gian: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
+
+function submitQuiz() {
+    // Stop the timer
+    clearInterval(timer);
+    
+    // Check if there are still questions to repeat
+    if (repeatQuestionsQueue.length > 0) {
+        const confirmSubmit = confirm(`Bạn vẫn còn ${repeatQuestionsQueue.length} câu hỏi cần ôn tập lại. Bạn có chắc muốn nộp bài?`);
+        if (!confirmSubmit) {
+            // Restart the timer and return
+            timer = setInterval(updateTimer, 1000);
+            return;
+        }
+    }
+    
+    // Check if all questions are answered
+    const unansweredCount = userAnswers.filter(answer => answer === null).length;
+    if (unansweredCount > 0) {
+        const confirmSubmit = confirm(`Bạn còn ${unansweredCount} câu hỏi chưa trả lời. Bạn có chắc muốn nộp bài?`);
+        if (!confirmSubmit) {
+            // Restart the timer and return
+            timer = setInterval(updateTimer, 1000);
+            return;
+        }
+    }
+    
+    // Calculate score
+    const score = calculateScore();
+    
+    // Display results
+    showResults(score);
+}
+
+function calculateScore() {
+    let correctCount = 0;
+    
+    userAnswers.forEach((answer, index) => {
+        if (answer === currentQuestions[index].correctAnswer) {
+            correctCount++;
+        }
+    });
+    
+    return correctCount;
+}
+
+function showResults(score) {
+    if (score === undefined) {
+        score = calculateScore();
+    }
+    
+    hideAllSections();
+    resultsContainer.classList.remove('hidden');
+    
+    // Display score
+    scoreElement.textContent = `${score}/${currentQuestions.length}`;
+    
+    // Display time taken
+    const minutes = Math.floor(elapsedTime / 60);
+    const seconds = elapsedTime % 60;
+    timeTakenElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    
+    // Clear previous results
+    resultsDetails.innerHTML = '';
+    
+    // Add summary of correct/incorrect answers
+    const summaryElement = document.createElement('div');
+    
+    // Include information about incorrect questions that were repeated
+    const uniqueIncorrectCount = new Set(incorrectQuestions.map(q => q.questionIndex)).size;
+    
+    summaryElement.innerHTML = `
+        <p>Số câu đúng: ${score}</p>
+        <p>Số câu sai: ${currentQuestions.length - score}</p>
+        <p>Số câu bạn đã làm sai và được ôn tập lại: ${uniqueIncorrectCount}</p>
+        <p>Tỷ lệ đúng: ${Math.round((score / currentQuestions.length) * 100)}%</p>
+    `;
+    
+    // Add specific info about which questions were repeated
+    if (uniqueIncorrectCount > 0) {
+        const repeatedQuestionsElement = document.createElement('div');
+        repeatedQuestionsElement.className = 'repeated-questions-summary';
+        repeatedQuestionsElement.innerHTML = `<h4>Các câu hỏi đã được ôn tập lại:</h4>`;
+        
+        const repeatedList = document.createElement('ul');
+        
+        // Get unique repeated questions
+        const uniqueRepeated = Array.from(new Set(incorrectQuestions.map(q => q.questionIndex)))
+            .map(index => ({
+                index: index + 1,
+                text: currentQuestions[index].text
+            }));
+        
+        uniqueRepeated.forEach(item => {
+            const listItem = document.createElement('li');
+            listItem.textContent = `Câu ${item.index}: ${item.text.substring(0, 100)}${item.text.length > 100 ? '...' : ''}`;
+            repeatedList.appendChild(listItem);
+        });
+        
+        repeatedQuestionsElement.appendChild(repeatedList);
+        summaryElement.appendChild(repeatedQuestionsElement);
+    }
+    
+    resultsDetails.appendChild(summaryElement);
+}
+
+function showReview() {
+    hideAllSections();
+    reviewContainer.classList.remove('hidden');
+    
+    // Clear previous review
+    reviewQuestions.innerHTML = '';
+    
+    // Generate review content for regular questions
+    currentQuestions.forEach((question, index) => {
+        const userAnswer = userAnswers[index];
+        const isCorrect = userAnswer === question.correctAnswer;
+        
+        const reviewItem = document.createElement('div');
+        reviewItem.className = 'review-item';
+        
+        const questionElement = document.createElement('div');
+        questionElement.className = 'review-question';
+        questionElement.textContent = `${index + 1}. ${question.text}`;
+        
+        // Check if this question was repeated due to incorrect answer
+        const wasRepeated = incorrectQuestions.some(q => q.questionIndex === index);
+        if (wasRepeated) {
+            const repeatBadge = document.createElement('span');
+            repeatBadge.className = 'repeat-badge';
+            repeatBadge.textContent = ' (Đã ôn tập lại)';
+            questionElement.appendChild(repeatBadge);
+        }
+        
+        reviewItem.appendChild(questionElement);
+        
+        const optionsElement = document.createElement('div');
+        optionsElement.className = 'review-options';
+        
+        // Display each option
+        question.options.forEach((option, optIndex) => {
+            const optionElement = document.createElement('div');
+            optionElement.className = 'review-option';
+            
+            // Mark user's answer and correct answer
+            if (optIndex === userAnswer) {
+                optionElement.classList.add('user-answer');
+                if (isCorrect) {
+                    optionElement.classList.add('correct-answer');
+                } else {
+                    optionElement.classList.add('wrong-answer');
+                }
+            } else if (optIndex === question.correctAnswer) {
+                optionElement.classList.add('correct-answer');
+            }
+            
+            optionElement.textContent = `${String.fromCharCode(65 + optIndex)}. ${option}`;
+            optionsElement.appendChild(optionElement);
+        });
+        
+        reviewItem.appendChild(optionsElement);
+        reviewQuestions.appendChild(reviewItem);
+    });
+}
+
+function restartQuiz() {
+    hideAllSections();
+    document.querySelector('.modes').classList.remove('hidden');
+}
+
+function backToMainScreen() {
+    // Check if the user is in the middle of a quiz and wants to go back
+    if (currentQuestionIndex > 0 || (currentQuestionIndex === 0 && userAnswers[0] !== null)) {
+        if (confirm('Bạn có chắc muốn quay lại màn hình chính? Tiến trình làm bài sẽ bị mất.')) {
+            // Stop the timer if it's running
+            if (timer) {
+                clearInterval(timer);
+            }
+            
+            // Reset all quiz data
+            currentQuestions = [];
+            currentQuestionIndex = 0;
+            userAnswers = [];
+            incorrectQuestions = [];
+            repeatQuestionsQueue = [];
+            elapsedTime = 0;
+            
+            // Return to the main screen
+            hideAllSections();
+            document.querySelector('.modes').classList.remove('hidden');
+        }
+    } else {
+        // If the user hasn't started answering questions yet, just go back
+        hideAllSections();
+        document.querySelector('.modes').classList.remove('hidden');
+    }
+}
+
+function updateNavigationButtons() {
+    // Update navigation buttons
+    prevBtn.disabled = currentQuestionIndex === 0;
+    nextBtn.disabled = currentQuestionIndex === currentQuestions.length - 1 && repeatQuestionsQueue.length === 0;
+    
+    // Update submit button visibility
+    if (currentQuestionIndex === currentQuestions.length - 1 && repeatQuestionsQueue.length === 0) {
+        submitBtn.classList.remove('hidden');
+    } else {
+        submitBtn.classList.add('hidden');
+    }
+}
+
+function hideAllSections() {
+    const sections = document.querySelectorAll('.section');
+    sections.forEach(section => section.classList.add('hidden'));
+    document.querySelector('.modes').classList.add('hidden');
+}
+
+// Alert about how to use the application once it loads
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if we're running locally (file://) or on a server
+    if (window.location.protocol === 'file:') {
+        setTimeout(() => {
+            alert('Lưu ý: Ứng dụng đang chạy ở chế độ file cục bộ, một số tính năng có thể không hoạt động. Để có trải nghiệm tốt nhất, vui lòng đặt các file vào máy chủ web.');
+        }, 1000);
+    }
+});

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ôn luyện Kinh tế Chính trị</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="main-button.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Ôn luyện Kinh tế Chính trị</h1>
+        </header>
+        
+        <div class="modes">
+            <h2>Chọn chế độ ôn tập</h2>
+            <div class="mode-buttons">
+                <button id="chapter-mode" class="mode-btn">Ôn luyện theo chương</button>
+                <button id="random-mode" class="mode-btn">Ôn luyện ngẫu nhiên (40 câu)</button>
+            </div>
+        </div>
+        
+        <div id="chapter-selection" class="section hidden">
+            <h2>Chọn chương</h2>
+            <div class="chapter-buttons">
+                <button class="chapter-btn" data-chapter="1">Chương 1</button>
+                <button class="chapter-btn" data-chapter="2">Chương 2</button>
+                <button class="chapter-btn" data-chapter="3">Chương 3</button>
+                <button class="chapter-btn" data-chapter="4">Chương 4</button>
+                <button class="chapter-btn" data-chapter="5">Chương 5</button>
+                <button class="chapter-btn" data-chapter="6">Chương 6</button>
+            </div>
+        </div>
+        
+        <div id="quiz-container" class="section hidden">
+            <div id="quiz-header">
+                <h2 id="quiz-title">Đề thi</h2>
+                <div id="quiz-info">
+                    <span id="question-count">Câu hỏi: 0/0</span>
+                    <span id="timer">Thời gian: 00:00</span>
+                </div>
+            </div>
+            
+            <div id="question-container">
+                <h3 id="question-text">Câu hỏi sẽ hiển thị ở đây</h3>
+                <div id="options-container">
+                    <!-- Options will be inserted here by JavaScript -->
+                </div>
+            </div>
+              <div id="controls">
+                <button id="prev-btn" class="control-btn" disabled>Câu trước</button>
+                <button id="next-btn" class="control-btn">Câu sau</button>
+                <button id="submit-btn" class="control-btn hidden">Nộp bài</button>
+                <button id="back-to-main-btn" class="control-btn main-btn">Quay lại màn hình chính</button>
+            </div>
+        </div>
+        
+        <div id="results-container" class="section hidden">
+            <h2>Kết quả</h2>
+            <div id="score-display">
+                <h3>Điểm số: <span id="score">0/0</span></h3>
+                <p>Thời gian làm bài: <span id="time-taken">00:00</span></p>
+            </div>
+            <div id="results-details">
+                <!-- Results will be displayed here -->
+            </div>
+            <div id="result-controls">
+                <button id="review-btn" class="control-btn">Xem lại bài làm</button>
+                <button id="restart-btn" class="control-btn">Làm bài mới</button>
+            </div>
+        </div>
+        
+        <div id="review-container" class="section hidden">
+            <h2>Xem lại bài làm</h2>
+            <div id="review-questions">
+                <!-- Review content will be inserted here -->
+            </div>
+            <button id="back-to-results" class="control-btn">Quay lại kết quả</button>
+        </div>
+    </div>
+      <footer>
+        <p>Ôn luyện Kinh tế Chính trị &copy; 2025</p>
+    </footer>
+    
+    <script src="script.js"></script>
+    <script src="debug-chapters-ui.js"></script>
+</body>
+</html>
