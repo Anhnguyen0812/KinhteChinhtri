@@ -1,6 +1,6 @@
-# Ứng dụng Ôn luyện Kinh tế Chính trị
+# Web Ôn luyện Kinh tế Chính trị
 
-Ứng dụng này được tạo ra để giúp sinh viên ôn luyện các câu hỏi trắc nghiệm môn Kinh tế Chính trị.
+Web này được tạo ra để giúp sinh viên ôn luyện các câu hỏi trắc nghiệm môn Kinh tế Chính trị.
 
 ## Tính năng
 
