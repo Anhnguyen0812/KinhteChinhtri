@@ -76,43 +76,63 @@ nextBtn.addEventListener('click', function(e) {
 });
 
 // Add keyboard navigation with arrow keys and A, B, C, D keys for answering
-document.addEventListener('keydown', function(e) {
-    // Only respond to keys if we're in quiz mode (quiz container is visible)
+document.addEventListener('keydown', function(e) {    // Only respond to keys if we're in quiz mode (quiz container is visible)
     if (!quizContainer.classList.contains('hidden')) {
-        // Navigation with arrow keys
-        if (e.key === 'ArrowLeft' && !prevBtn.disabled) {
-            e.preventDefault(); // Prevent scrolling
-            showPreviousQuestion();
-        } else if (e.key === 'ArrowRight' && !nextBtn.disabled) {
-            e.preventDefault(); // Prevent scrolling
-            showNextQuestion();
+        // Navigation with arrow keys - only if we're not showing feedback
+        if (!showingFeedback) {
+            if (e.key === 'ArrowLeft' && !prevBtn.disabled) {
+                e.preventDefault(); // Prevent scrolling
+                showPreviousQuestion();
+                return; // Exit early to prevent processing as an answer key
+            } else if (e.key === 'ArrowRight' && !nextBtn.disabled) {
+                e.preventDefault(); // Prevent scrolling
+                showNextQuestion();
+                return; // Exit early to prevent processing as an answer key
+            }
         }
-        
+          
         // Answer with A, B, C, D keys
         if (!showingFeedback && currentQuestions.length > 0) {
-            const currentQuestion = currentQuestions[currentQuestionIndex];
-            const optionsCount = currentQuestion.options.length;
+            // Check if we're showing a repeated question
+            const isRepeatedQuestion = repeatQuestionsQueue.length > 0 && currentQuestionIndex >= currentQuestions.length - 1;
+            // Get the correct question object (either from regular questions or repeat queue)
+            const currentQuestion = isRepeatedQuestion && repeatQuestionsQueue.length > 0 
+                ? repeatQuestionsQueue[0].question 
+                : currentQuestions[currentQuestionIndex];
             
-            // Check for A, B, C, D keys (both lowercase and uppercase)
+            const optionsCount = currentQuestion.options.length;
+              // Check for A, B, C, D keys (both lowercase and uppercase)
             const key = e.key.toUpperCase();
-            if (key >= 'A' && key <= 'D') {
-                const optionIndex = key.charCodeAt(0) - 'A'.charCodeAt(0);
+            
+            // Check if key is A, B, C, D or number keys 1, 2, 3, 4
+            let optionIndex = -1;
+            
+            if (key == 'A' || key == 'B' || key == 'C' || key == 'D') {
+                // Convert A, B, C, D to index 0, 1, 2, 3
+                optionIndex = key.charCodeAt(0) - 'A'.charCodeAt(0);
+            } else if (key == '1' || key == '2' || key == '3' || key == '4') {
+                // Convert number keys 1, 2, 3, 4 to index 0, 1, 2, 3
+                optionIndex = parseInt(key) - 1;
+            }
+              // Only proceed if we have a valid option index
+            if (optionIndex >= 0 && optionIndex < optionsCount) {
+                e.preventDefault(); // Prevent default action
                 
-                // Only select the option if it exists for this question
-                if (optionIndex < optionsCount) {
-                    e.preventDefault(); // Prevent default action
+                // If it's a repeated question, pass the question object to selectOption
+                if (isRepeatedQuestion && repeatQuestionsQueue.length > 0) {
+                    selectOption(optionIndex, repeatQuestionsQueue[0].question);
+                } else {
                     selectOption(optionIndex);
+                }
+                
+                // Highlight the selected option visually
+                const options = optionsContainer.querySelectorAll('.option');
+                if (options[optionIndex]) {                    options[optionIndex].classList.add('keyboard-selected');
                     
-                    // Highlight the selected option visually
-                    const options = optionsContainer.querySelectorAll('.option');
-                    if (options[optionIndex]) {
-                        options[optionIndex].classList.add('keyboard-selected');
-                        
-                        // Remove the highlight after a short delay
-                        setTimeout(() => {
-                            options[optionIndex].classList.remove('keyboard-selected');
-                        }, 300);
-                    }
+                    // Remove the highlight after a short delay
+                    setTimeout(() => {
+                        options[optionIndex].classList.remove('keyboard-selected');
+                    }, 300);
                 }
             }
         }
@@ -368,6 +388,9 @@ function showChapterSelection() {
 }
 
 function startChapterMode(chapterNumber) {
+    console.log("Starting chapter mode for chapter:", chapterNumber);
+    console.log("Available chapters:", Object.keys(chapters));
+    
     // Ensure chapters are properly loaded
     if (!chapters || Object.keys(chapters).length === 0) {
         alert('Không có dữ liệu câu hỏi. Vui lòng kiểm tra file câu hỏi và tải lại trang.');
@@ -376,6 +399,8 @@ function startChapterMode(chapterNumber) {
 
     // Check if the requested chapter exists
     currentQuestions = chapters[chapterNumber] || [];
+    console.log(`Chapter ${chapterNumber} has ${currentQuestions.length} questions`);
+    
     if (currentQuestions.length === 0) {
         alert(`Không có câu hỏi cho Chương ${chapterNumber}. Vui lòng kiểm tra lại nội dung file câu hỏi.`);
         return;
@@ -433,12 +458,11 @@ function startQuiz() {
     
     // Initially hide the submit button until we reach the end
     submitBtn.classList.add('hidden');
-    
-    // Show a tip about keyboard shortcuts
+      // Show a tip about keyboard shortcuts
     const keyboardTip = document.createElement('div');
     keyboardTip.className = 'keyboard-tip';
     keyboardTip.innerHTML = `
-        <p><i class="fas fa-keyboard"></i> Mẹo: Bạn có thể sử dụng phím <strong>A, B, C, D</strong> để chọn đáp án và phím <strong>← →</strong> để di chuyển giữa các câu hỏi.</p>
+        <p><i class="fas fa-keyboard"></i> Mẹo: Bạn có thể sử dụng phím <strong>A, B, C, D</strong> hoặc <strong>1, 2, 3, 4</strong> để chọn đáp án và phím <strong>← →</strong> để di chuyển giữa các câu hỏi.</p>
     `;
     quizContainer.insertBefore(keyboardTip, document.getElementById('controls'));
     
@@ -563,11 +587,12 @@ function displayQuestion() {
 }
 
 function selectOption(optionIndex, repeatQuestion = null) {
-    // If we're already showing feedback, ignore further clicks
-    if (showingFeedback) return;
-    
     // Get the current question (either regular or repeated)
     const question = repeatQuestion || currentQuestions[currentQuestionIndex];
+    
+    // Remove any previous feedback messages
+    const oldFeedback = document.querySelectorAll('.feedback-message');
+    oldFeedback.forEach(el => el.remove());
     
     // Save user's answer
     if (!repeatQuestion) {
@@ -650,12 +675,14 @@ function selectOption(optionIndex, repeatQuestion = null) {
 
 function showPreviousQuestion() {
     // If we're showing feedback, ignore navigation
-    if (showingFeedback) return;
+    if (showingFeedback) {
+        console.log("Navigation blocked - feedback is showing");
+        return;
+    }
     
     if (currentQuestionIndex > 0) {
         currentQuestionIndex--;
         displayQuestion();
-        // Navigation grid is updated in displayQuestion
     }
 }
 
@@ -671,8 +698,7 @@ function showNextQuestion() {
         // If we have questions to repeat, show them
         if (repeatQuestionsQueue.length > 0) {
             console.log("Moving to repeat questions");
-            displayQuestion();
-            // Navigation grid is updated in displayQuestion
+            displayQuestion(); // This will display the next repeat question
         } else {
             // No more questions, submit or stay at last question
             if (confirm('Bạn đã hoàn thành tất cả các câu hỏi. Bạn có muốn nộp bài?')) {
@@ -684,7 +710,6 @@ function showNextQuestion() {
         console.log("Moving to next question: " + (currentQuestionIndex + 1));
         currentQuestionIndex++;
         displayQuestion();
-        // Navigation grid is updated in displayQuestion
     }
 }
 
@@ -902,10 +927,14 @@ function backToMainScreen() {
 function updateNavigationButtons() {
     // Update navigation buttons
     prevBtn.disabled = currentQuestionIndex === 0;
-    nextBtn.disabled = currentQuestionIndex === currentQuestions.length - 1 && repeatQuestionsQueue.length === 0;
+    
+    // Next button should be enabled if we're not at the end or if we have repeat questions
+    const atEnd = currentQuestionIndex === currentQuestions.length - 1;
+    const hasRepeatQuestions = repeatQuestionsQueue.length > 0;
+    nextBtn.disabled = atEnd && !hasRepeatQuestions;
     
     // Update submit button visibility
-    if (currentQuestionIndex === currentQuestions.length - 1 && repeatQuestionsQueue.length === 0) {
+    if (atEnd && !hasRepeatQuestions) {
         submitBtn.classList.remove('hidden');
     } else {
         submitBtn.classList.add('hidden');
