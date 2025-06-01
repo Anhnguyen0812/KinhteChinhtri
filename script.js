@@ -75,16 +75,46 @@ nextBtn.addEventListener('click', function(e) {
     }
 });
 
-// Add keyboard navigation with arrow keys
+// Add keyboard navigation with arrow keys and A, B, C, D keys for answering
 document.addEventListener('keydown', function(e) {
-    // Only respond to arrow keys if we're in quiz mode (quiz container is visible)
+    // Only respond to keys if we're in quiz mode (quiz container is visible)
     if (!quizContainer.classList.contains('hidden')) {
+        // Navigation with arrow keys
         if (e.key === 'ArrowLeft' && !prevBtn.disabled) {
             e.preventDefault(); // Prevent scrolling
             showPreviousQuestion();
         } else if (e.key === 'ArrowRight' && !nextBtn.disabled) {
             e.preventDefault(); // Prevent scrolling
             showNextQuestion();
+        }
+        
+        // Answer with A, B, C, D keys
+        if (!showingFeedback && currentQuestions.length > 0) {
+            const currentQuestion = currentQuestions[currentQuestionIndex];
+            const optionsCount = currentQuestion.options.length;
+            
+            // Check for A, B, C, D keys (both lowercase and uppercase)
+            const key = e.key.toUpperCase();
+            if (key >= 'A' && key <= 'D') {
+                const optionIndex = key.charCodeAt(0) - 'A'.charCodeAt(0);
+                
+                // Only select the option if it exists for this question
+                if (optionIndex < optionsCount) {
+                    e.preventDefault(); // Prevent default action
+                    selectOption(optionIndex);
+                    
+                    // Highlight the selected option visually
+                    const options = optionsContainer.querySelectorAll('.option');
+                    if (options[optionIndex]) {
+                        options[optionIndex].classList.add('keyboard-selected');
+                        
+                        // Remove the highlight after a short delay
+                        setTimeout(() => {
+                            options[optionIndex].classList.remove('keyboard-selected');
+                        }, 300);
+                    }
+                }
+            }
         }
     }
 });
@@ -403,6 +433,20 @@ function startQuiz() {
     
     // Initially hide the submit button until we reach the end
     submitBtn.classList.add('hidden');
+    
+    // Show a tip about keyboard shortcuts
+    const keyboardTip = document.createElement('div');
+    keyboardTip.className = 'keyboard-tip';
+    keyboardTip.innerHTML = `
+        <p><i class="fas fa-keyboard"></i> Mẹo: Bạn có thể sử dụng phím <strong>A, B, C, D</strong> để chọn đáp án và phím <strong>← →</strong> để di chuyển giữa các câu hỏi.</p>
+    `;
+    quizContainer.insertBefore(keyboardTip, document.getElementById('controls'));
+    
+    // Auto-hide the tip after 8 seconds
+    setTimeout(() => {
+        keyboardTip.style.opacity = '0';
+        setTimeout(() => keyboardTip.remove(), 500);
+    }, 2000);
 }
 
 function displayQuestion() {
@@ -435,12 +479,24 @@ function displayQuestion() {
         
         // Clear options container
         optionsContainer.innerHTML = '';
-        
-        // Add options for the repeated question
+          // Add options for the repeated question
         repeatQuestion.options.forEach((option, index) => {
             const optionElement = document.createElement('div');
             optionElement.className = 'option';
-            optionElement.textContent = `${String.fromCharCode(65 + index)}. ${option}`; // A, B, C, D...
+            
+            // Add key hint for keyboard shortcuts
+            const keyHint = document.createElement('span');
+            keyHint.className = 'key-hint';
+            keyHint.textContent = String.fromCharCode(65 + index);
+            
+            // Create text span
+            const optionText = document.createElement('span');
+            optionText.className = 'option-text';
+            optionText.textContent = option;
+            
+            // Combine key hint and text
+            optionElement.appendChild(keyHint);
+            optionElement.appendChild(optionText);
             
             optionElement.addEventListener('click', () => selectOption(index, repeatQuestion));
             optionsContainer.appendChild(optionElement);
@@ -471,12 +527,24 @@ function displayQuestion() {
     
     // Clear options container
     optionsContainer.innerHTML = '';
-    
-    // Add options
+      // Add options
     question.options.forEach((option, index) => {
         const optionElement = document.createElement('div');
         optionElement.className = 'option';
-        optionElement.textContent = `${String.fromCharCode(65 + index)}. ${option}`; // A, B, C, D...
+        
+        // Add key hint for keyboard shortcuts
+        const keyHint = document.createElement('span');
+        keyHint.className = 'key-hint';
+        keyHint.textContent = String.fromCharCode(65 + index);
+        
+        // Create text span
+        const optionText = document.createElement('span');
+        optionText.className = 'option-text';
+        optionText.textContent = option;
+        
+        // Combine key hint and text
+        optionElement.appendChild(keyHint);
+        optionElement.appendChild(optionText);
         
         // Mark selected option if user has answered this question
         if (userAnswers[currentQuestionIndex] === index) {
@@ -484,7 +552,8 @@ function displayQuestion() {
         }
         
         optionElement.addEventListener('click', () => selectOption(index));
-        optionsContainer.appendChild(optionElement);    });
+        optionsContainer.appendChild(optionElement);
+    });
     
     // Update navigation buttons
     updateNavigationButtons();
