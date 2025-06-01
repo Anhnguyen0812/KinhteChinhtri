@@ -341,7 +341,7 @@ h2 {
 }
 
 #toggle-navigation-btn {
-    margin-top: 0; /* Remove top margin since button is now above the panel */
+    margin-top: 15; /* Remove top margin since button is now above the panel */
 }
 
 /* Results */
@@ -489,12 +489,13 @@ h2 {
 /* Footer */
 footer {
     text-align: center;
-    padding: 25px 0;
-    color: #6c757d;
-    margin-top: 40px;
-    border-top: 1px solid #e9ecef;
-    background: linear-gradient(to bottom, #ffffff, #f8f9fa);
-    border-radius: 0 0 15px 15px;
+    font-size: 0.8rem; /* Adjusted for mobile */
+    padding: 10px 10xpx;
+    color: #61696f;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    background: transparent;
+    border-radius: 15px 15px 15px 15px;
 }
 
 footer a {
