@@ -12,8 +12,22 @@ let chapters = {};
 let showingFeedback = false; // Flag to indicate if we're showing feedback
 let navigationPanelVisible = true; // Flag to track navigation panel visibility
 let originalQuestionCount = 0; // Track the original number of questions before adding repeats
+let currentQuestionFile = 'ktct.txt'; // Default file to load
+let questionFileTitles = {
+    'ktct.txt': 'Kinh tế Chính trị',
+    'nlmkt.txt': 'Nguyên lý Mac-Lenin'
+};
+let previousScreen = 'modes'; // Track which screen to return to when going back from file selection
+let selectedQuestionCount = 40; // Default question count for random mode
 
 // DOM Elements
+const ktctFileBtn = document.getElementById('ktct-file');
+const nlmktFileBtn = document.getElementById('nlmkt-file');
+const backFromFileBtn = document.getElementById('back-from-file-selection');
+const changeFileBtn = document.getElementById('change-file-btn');
+const nlmktOptions = document.getElementById('nlmkt-options');
+const nlmkt40Btn = document.getElementById('nlmkt-40');
+const nlmkt50Btn = document.getElementById('nlmkt-50');
 const chapterModeBtn = document.getElementById('chapter-mode');
 const randomModeBtn = document.getElementById('random-mode');
 const chapterSelection = document.getElementById('chapter-selection');
@@ -40,9 +54,14 @@ const backToMainBtn = document.getElementById('back-to-main-btn');
 const questionNavigationPanel = document.getElementById('question-navigation-panel');
 const questionNavigationGrid = document.getElementById('question-navigation-grid');
 const toggleNavigationBtn = document.getElementById('toggle-navigation-btn');
+const appTitle = document.getElementById('app-title');
+// DOM Element for current file indicator
+const currentFileIndicator = document.getElementById('current-file-indicator');
+const currentFileName = document.getElementById('current-file-name');
 
 // Function to hide all sections
 function hideAllSections() {
+    document.querySelector('.file-selection').classList.add('hidden');
     document.querySelector('.modes').classList.add('hidden');
     chapterSelection.classList.add('hidden');
     quizContainer.classList.add('hidden');
@@ -52,6 +71,12 @@ function hideAllSections() {
 
 // Event listeners
 document.addEventListener('DOMContentLoaded', initialize);
+ktctFileBtn.addEventListener('click', () => selectQuestionFile('ktct.txt'));
+nlmktFileBtn.addEventListener('click', () => selectQuestionFile('nlmkt.txt'));
+backFromFileBtn.addEventListener('click', goBackFromFileSelection);
+changeFileBtn.addEventListener('click', changeQuestionFile);
+nlmkt40Btn.addEventListener('click', () => selectQuestionCount(40));
+nlmkt50Btn.addEventListener('click', () => selectQuestionCount(50));
 chapterModeBtn.addEventListener('click', showChapterSelection);
 randomModeBtn.addEventListener('click', startRandomMode);
 chapterButtons.forEach(button => {
@@ -149,39 +174,144 @@ toggleNavigationBtn.addEventListener('click', toggleNavigationPanel);
 
 // Functions
 async function initialize() {
-    try {
-        await loadQuestions(); // Await the promise from loadQuestions
-        if (questions.length === 0) {
-            // loadQuestions or parseQuestions should have alerted the user.
-            // This console log is for developer feedback.
-            console.error('Initialization failed: No questions were loaded or parsed.');
-            // Optionally, display a persistent error message in the UI if desired.
-            return; // Stop further initialization if no questions are available
+    // Show file selection section by default
+    hideAllSections();
+    document.querySelector('.file-selection').classList.remove('hidden');
+    
+    // Initially hide the back button on first load
+    backFromFileBtn.style.display = 'none';
+}
+
+// Function to handle going back from file selection
+function goBackFromFileSelection() {
+    hideAllSections();
+    
+    // Handle navigation based on the previous screen
+    if (previousScreen === 'modes') {
+        document.querySelector('.modes').classList.remove('hidden');
+    } else if (previousScreen === 'chapterSelection') {
+        chapterSelection.classList.remove('hidden');
+    } else if (previousScreen === 'quiz') {
+        quizContainer.classList.remove('hidden');
+        // Restore the navigation panel if it was visible
+        if (navigationPanelVisible) {
+            questionNavigationPanel.classList.remove('hidden');
         }
-        organizeQuestionsByChapter();
-        
-        // Update random mode button with total question count
-        const randomModeBtn = document.getElementById('random-mode');
-        randomModeBtn.innerHTML = `Ôn luyện ngẫu nhiên <span class="question-count">(40/${questions.length} câu)</span>`;
-    } catch (error) {
-        console.error('Error initializing quiz:', error);
-        // Most specific alerts should be handled by loadQuestions/parseQuestions.
-        // This is a fallback for unexpected errors from the loadQuestions promise rejection.
-        alert('Có lỗi nghiêm trọng trong quá trình khởi tạo. Vui lòng tải lại trang.');
+    } else if (previousScreen === 'results') {
+        resultsContainer.classList.remove('hidden');
+    } else if (previousScreen === 'review') {
+        reviewContainer.classList.remove('hidden');
+    } else {
+        // Default to modes screen if we have questions loaded
+        if (questions.length > 0) {
+            document.querySelector('.modes').classList.remove('hidden');
+        } else {
+            // If no questions are loaded, stay on file selection
+            document.querySelector('.file-selection').classList.remove('hidden');
+            // Hide the back button since there's nowhere to go back to
+            backFromFileBtn.style.display = 'none';
+        }
+    }
+    
+    // Update UI to reflect current question file
+    if (questions.length > 0) {
+        updateUIWithSelectedFile(currentQuestionFile);
     }
 }
 
-function loadQuestions() {
+// Function to change question file from the modes screen
+function changeQuestionFile() {
+    // Set the previous screen to return to
+    previousScreen = 'modes';
+    // Show the back button
+    backFromFileBtn.style.display = 'inline-flex';
+    
+    hideAllSections();
+    document.querySelector('.file-selection').classList.remove('hidden');
+}
+
+// Function to handle selecting a question file
+async function selectQuestionFile(fileName) {
+    try {
+        currentQuestionFile = fileName;
+        
+        // Update the active file button visually
+        updateActiveFileButton(fileName);
+        
+        // Update the app title to reflect the selected question set
+        appTitle.textContent = `Ôn luyện ${questionFileTitles[fileName]}`;
+        
+        // Clear previous questions and show loading state
+        questions = [];
+        document.querySelector('.file-selection').classList.add('hidden');
+        
+        // Create and show a loading indicator
+        const loadingIndicator = document.createElement('div');
+        loadingIndicator.className = 'loading-indicator';
+        loadingIndicator.innerHTML = `<p>Đang tải câu hỏi từ ${fileName}...</p>`;
+        document.querySelector('.container').appendChild(loadingIndicator);
+        
+        // Load the questions from the selected file
+        await loadQuestions(fileName);
+        
+        // Remove loading indicator
+        document.querySelector('.loading-indicator').remove();
+        
+        if (questions.length === 0) {
+            // If no questions were loaded, show an error and return to file selection
+            alert(`Không thể tải câu hỏi từ file ${fileName}. Vui lòng thử lại.`);
+            document.querySelector('.file-selection').classList.remove('hidden');
+            return;
+        }
+        
+        // Organize questions by chapter
+        organizeQuestionsByChapter();
+          // Update UI elements with the selected file info
+        updateUIWithSelectedFile(fileName);
+          // Show current file indicator
+        currentFileIndicator.classList.remove('hidden');
+        
+        // Update chapter buttons with question counts
+        updateChapterButtonsWithCount();
+        
+        // Show the mode selection screen
+        document.querySelector('.modes').classList.remove('hidden');
+    } catch (error) {
+        console.error('Error initializing quiz:', error);
+        alert('Có lỗi nghiêm trọng trong quá trình tải câu hỏi. Vui lòng thử lại sau.');
+        document.querySelector('.file-selection').classList.remove('hidden');
+    }
+}
+
+// Function to update UI elements with selected file information
+function updateUIWithSelectedFile(fileName) {
+    // Update the change file button to show current file
+    changeFileBtn.innerHTML = `<i class="fas fa-exchange-alt"></i> Đổi bộ câu hỏi (Hiện tại: ${questionFileTitles[fileName]})`;
+    
+    // Update any other UI elements that should reflect the current file
+    document.querySelector('.modes h2').textContent = `Chọn chế độ ôn tập - ${questionFileTitles[fileName]}`;
+    
+    // Update the current file indicator
+    currentFileName.textContent = questionFileTitles[fileName];
+    
+    // Show/hide NLMKT options based on selected file
+    toggleNLMKTOptions();
+    
+    // Update the random mode button text
+    updateRandomModeButton();
+}
+
+function loadQuestions(fileName = 'ktct.txt') {
     return new Promise(async (resolve, reject) => {
         try {
             // Try to fetch the file using fetch API
-            const response = await fetch('ktct.txt');
+            const response = await fetch(fileName);
             if (!response.ok) {
                 console.warn(`Fetch failed with status ${response.status}: ${response.statusText}. Trying XMLHttpRequest.`);
                 // Don't throw yet, fall through to XHR attempt
             } else {
                 const data = await response.text();
-                parseQuestions(data); // Modifies global 'questions'
+                parseQuestions(data, fileName); // Modifies global 'questions'
                 if (questions.length > 0) {
                     resolve();
                 } else {
@@ -199,11 +329,11 @@ function loadQuestions() {
 
         // If fetch was not ok or threw an error, try XMLHttpRequest
         const xhr = new XMLHttpRequest();
-        xhr.open('GET', 'ktct.txt', true);
+        xhr.open('GET', fileName, true);
         xhr.onreadystatechange = function() {
             if (xhr.readyState === 4) {
                 if (xhr.status === 200 || (xhr.status === 0 && xhr.responseText)) { // status 0 for local file access
-                    parseQuestions(xhr.responseText); // Modifies global 'questions'
+                    parseQuestions(xhr.responseText, fileName); // Modifies global 'questions'
                     if (questions.length > 0) {
                         resolve();
                     } else {
@@ -213,7 +343,7 @@ function loadQuestions() {
                     }
                 } else {
                     console.error(`Failed to fetch file using XMLHttpRequest: Status ${xhr.status}, ${xhr.statusText}`);
-                    alert('Có lỗi khi tải câu hỏi (XHR). Vui lòng kiểm tra file ktct.txt và tải lại trang.');
+                    alert(`Có lỗi khi tải câu hỏi (XHR). Vui lòng kiểm tra file ${fileName} và tải lại trang.`);
                     questions = []; // Ensure questions is empty on error
                     reject(new Error(`XHR failed with status: ${xhr.statusText || xhr.status}`));
                 }
@@ -221,7 +351,7 @@ function loadQuestions() {
         };
         xhr.onerror = function() { // Handle network errors for XHR
             console.error('XMLHttpRequest network error.');
-            alert('Lỗi mạng khi tải câu hỏi (XHR). Vui lòng kiểm tra kết nối và tải lại trang.');
+            alert(`Lỗi mạng khi tải câu hỏi từ ${fileName} (XHR). Vui lòng kiểm tra kết nối và tải lại trang.`);
             questions = []; // Ensure questions is empty on error
             reject(new Error('XHR network error.'));
         };
@@ -229,12 +359,12 @@ function loadQuestions() {
     });
 }
 
-function parseQuestions(data) {
+function parseQuestions(data, fileName = 'ktct.txt') {
     questions = []; // Reset global questions array before parsing
     try {
         if (!data || data.trim() === '') {
             console.warn('Provided data for parsing is empty.');
-            alert('File câu hỏi (ktct.txt) rỗng hoặc không có nội dung. Vui lòng kiểm tra lại.');
+            alert(`File câu hỏi (${fileName}) rỗng hoặc không có nội dung. Vui lòng kiểm tra lại.`);
             return;
         }
 
@@ -245,7 +375,7 @@ function parseQuestions(data) {
 
         if (chapterBlocks.length === 0) {
             console.warn('No "Chương n" delimiters found in the data.');
-            alert('Không tìm thấy định dạng chương (Chương n) trong file câu hỏi. Vui lòng kiểm tra lại file ktct.txt.');
+            alert(`Không tìm thấy định dạng chương (Chương n) trong file câu hỏi. Vui lòng kiểm tra lại file ${fileName}.`);
             return;
         }
 
@@ -284,7 +414,8 @@ function parseQuestions(data) {
                                 text: currentQuestionText.trim(),
                                 options: currentOptions,
                                 correctAnswer: correctIndex,
-                                chapter: chapterIdentifier
+                                chapter: chapterIdentifier,
+                                sourceFile: fileName // Add source file information
                             });
                         } else {
                             console.warn(`Skipped question in chapter ${chapterIdentifier}: Correct answer letter '${correctAnswerInfo.letter}' from '•' line not found in parsed option letters [${currentOptionLetters.join(', ')}].\nText: "${currentQuestionText.trim()}"\nOptions: ${JSON.stringify(currentOptions)}\nCorrect Answer Line: "${line}"`);
@@ -311,15 +442,15 @@ function parseQuestions(data) {
             }
         });
 
-        console.log('Successfully parsed questions. Total questions loaded:', questions.length);
+        console.log(`Successfully parsed questions from ${fileName}. Total questions loaded:`, questions.length);
         if (questions.length === 0 && data.trim() !== '') {
-            alert('Không tìm thấy câu hỏi nào hợp lệ trong file. Vui lòng kiểm tra định dạng của các câu hỏi và đáp án trong file ktct.txt.');
+            alert(`Không tìm thấy câu hỏi nào hợp lệ trong file ${fileName}. Vui lòng kiểm tra định dạng của các câu hỏi và đáp án.`);
         }
 
     } catch (parseError) {
         console.error('Critical error during parsing questions:', parseError);
         questions = [];
-        alert('Có lỗi nghiêm trọng khi xử lý nội dung file câu hỏi. Vui lòng kiểm tra định dạng file ktct.txt và thử tải lại trang.');
+        alert(`Có lỗi nghiêm trọng khi xử lý nội dung file câu hỏi ${fileName}. Vui lòng kiểm tra định dạng file và thử tải lại trang.`);
     }
 }
 
@@ -428,19 +559,25 @@ function startChapterMode(chapterNumber) {
 }
 
 function startRandomMode() {
-    if (questions.length < 40) {
-        alert('Không đủ câu hỏi để tạo đề ngẫu nhiên. Vui lòng tải lại trang.');
+    // Use selectedQuestionCount for question count logic
+    const questionCount = (currentQuestionFile === 'nlmkt.txt') ? selectedQuestionCount : 40;
+    
+    if (questions.length < questionCount) {
+        alert(`Không đủ câu hỏi để tạo đề ngẫu nhiên. Cần ít nhất ${questionCount} câu hỏi.`);
         return;
     }
-      // Get 40 random questions
-    currentQuestions = getRandomQuestions(questions, 40);
+      
+    // Get random questions based on selected count
+    currentQuestions = getRandomQuestions(questions, questionCount);
     originalQuestionCount = currentQuestions.length; // Store the original count
     userAnswers = Array(currentQuestions.length).fill(null);
     currentQuestionIndex = 0;
     incorrectQuestions = [];
     repeatQuestionsQueue = [];
     
-    quizTitle.textContent = 'Đề thi ngẫu nhiên (40 câu)';
+    // Update quiz title based on current file and question count
+    const fileTitle = questionFileTitles[currentQuestionFile];
+    quizTitle.textContent = `Đề thi ngẫu nhiên - ${fileTitle} (${questionCount} câu)`;
     startQuiz();
 }
 
@@ -794,6 +931,12 @@ function showResults(score) {
     hideAllSections();
     resultsContainer.classList.remove('hidden');
     
+    // Update results title to include question set name
+    const resultsTitle = resultsContainer.querySelector('h2');
+    if (resultsTitle) {
+        resultsTitle.textContent = `Kết quả - ${questionFileTitles[currentQuestionFile]}`;
+    }
+    
     // Calculate how many original questions were answered correctly
     const originalCorrectCount = calculateOriginalCorrectAnswers();
     
@@ -852,6 +995,12 @@ function showReview() {
     hideAllSections();
     reviewContainer.classList.remove('hidden');
     
+    // Update review title to include question set name
+    const reviewTitle = reviewContainer.querySelector('h2');
+    if (reviewTitle) {
+        reviewTitle.textContent = `Xem lại bài làm - ${questionFileTitles[currentQuestionFile]}`;
+    }
+    
     // Clear previous review
     reviewQuestions.innerHTML = '';
     
@@ -908,10 +1057,28 @@ function showReview() {
 }
 
 function restartQuiz() {
-    hideAllSections();
+    // Ask if the user wants to change the question file
+    const changeFile = confirm('Bạn có muốn đổi sang bộ câu hỏi khác không?');
+    
+    if (changeFile) {
+        // Set the previous screen to return to
+        previousScreen = 'modes';
+        // Show the back button
+        backFromFileBtn.style.display = 'inline-flex';
+        
+        // Go back to file selection
+        hideAllSections();
+        document.querySelector('.file-selection').classList.remove('hidden');
+    } else {
+        // Just go back to mode selection for the current file
+        hideAllSections();
+        document.querySelector('.modes').classList.remove('hidden');
+        // Update UI elements to show current file
+        updateUIWithSelectedFile(currentQuestionFile);
+    }
+    
     // Reset navigation panel state
     navigationPanelVisible = true;
-    document.querySelector('.modes').classList.remove('hidden');
 }
 
 function backToMainScreen() {
@@ -934,14 +1101,42 @@ function backToMainScreen() {
             // Reset navigation panel state
             navigationPanelVisible = true;
             
-            // Return to the main screen
-            hideAllSections();
-            document.querySelector('.modes').classList.remove('hidden');
+            // Ask if they want to change question file
+            const changeFile = confirm('Bạn có muốn đổi sang bộ câu hỏi khác không?');
+            
+            if (changeFile) {
+                // Set the previous screen to return to
+                previousScreen = 'modes';
+                // Show the back button
+                backFromFileBtn.style.display = 'inline-flex';
+                
+                hideAllSections();
+                document.querySelector('.file-selection').classList.remove('hidden');
+            } else {
+                hideAllSections();
+                document.querySelector('.modes').classList.remove('hidden');
+                // Update UI elements to show current file
+                updateUIWithSelectedFile(currentQuestionFile);
+            }
         }
     } else {
-        // If the user hasn't started answering questions yet, just go back
-        hideAllSections();
-        document.querySelector('.modes').classList.remove('hidden');
+        // If the user hasn't started answering questions yet, just ask if they want to change file
+        const changeFile = confirm('Bạn có muốn đổi sang bộ câu hỏi khác không?');
+        
+        if (changeFile) {
+            // Set the previous screen to return to
+            previousScreen = 'modes';
+            // Show the back button
+            backFromFileBtn.style.display = 'inline-flex';
+            
+            hideAllSections();
+            document.querySelector('.file-selection').classList.remove('hidden');
+        } else {
+            hideAllSections();
+            document.querySelector('.modes').classList.remove('hidden');
+            // Update UI elements to show current file
+            updateUIWithSelectedFile(currentQuestionFile);
+        }
     }
 }
 
@@ -1056,4 +1251,59 @@ function updateChapterButtonsWithCount() {
 function updateQuizTitleWithCount(chapterNumber) {
     const questionsInChapter = chapters[chapterNumber] ? chapters[chapterNumber].length : 0;
     quizTitle.textContent = `Ôn luyện Chương ${chapterNumber} (${questionsInChapter} câu)`;
+}
+
+// Function to visually indicate which file is currently selected
+function updateActiveFileButton(fileName) {
+    // First, remove active class from all file buttons
+    ktctFileBtn.classList.remove('active-file');
+    nlmktFileBtn.classList.remove('active-file');
+    
+    // Then, add active class to the selected file button
+    if (fileName === 'ktct.txt') {
+        ktctFileBtn.classList.add('active-file');
+    } else if (fileName === 'nlmkt.txt') {
+        nlmktFileBtn.classList.add('active-file');
+    }
+}
+
+// Function to handle question count selection for NLMKT
+function selectQuestionCount(count) {
+    selectedQuestionCount = count;
+    
+    // Update the visual selection
+    nlmkt40Btn.classList.remove('selected');
+    nlmkt50Btn.classList.remove('selected');
+    
+    if (count === 40) {
+        nlmkt40Btn.classList.add('selected');
+    } else if (count === 50) {
+        nlmkt50Btn.classList.add('selected');
+    }
+    
+    // Update the random mode button text
+    updateRandomModeButton();
+}
+
+// Function to update the random mode button text based on current file and selected count
+function updateRandomModeButton() {
+    if (currentQuestionFile === 'nlmkt.txt') {
+        randomModeBtn.innerHTML = `Ôn luyện ngẫu nhiên <span class="question-count">(${selectedQuestionCount}/${questions.length} câu)</span>`;
+    } else {
+        randomModeBtn.innerHTML = `Ôn luyện ngẫu nhiên <span class="question-count">(40/${questions.length} câu)</span>`;
+    }
+}
+
+// Function to show/hide NLMKT options based on selected file
+function toggleNLMKTOptions() {
+    if (currentQuestionFile === 'nlmkt.txt') {
+        nlmktOptions.classList.remove('hidden');
+        // Set default selection if none is selected
+        if (!nlmkt40Btn.classList.contains('selected') && !nlmkt50Btn.classList.contains('selected')) {
+            selectQuestionCount(40); // Default to 40
+        }
+    } else {
+        nlmktOptions.classList.add('hidden');
+        selectedQuestionCount = 40; // Reset to default for KTCT
+    }
 }

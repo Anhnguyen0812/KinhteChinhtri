@@ -1,26 +1,69 @@
-<!D    <meta charset="UTF-8">    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ôn luyện Kinh tế Chính trị</title>
+<!D    <meta charset="UTF-8">    <meta name="viewport" content="width=device-width, initial-scale=1.0">    <title>Ôn luyện</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="main-button.css">
+    <link rel="stylesheet" href="file-selection.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <html lang="vi">
 <head>
     <meta charset="UTF-8">    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ôn luyện Kinh tế Chính trị</title>
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="main-button.css">
+    <title>Ôn luyện trắc nghiệm</title> <link rel="icon" href="study.png" type="image/png">    <link rel="stylesheet" href="main-button.css">
+    <link rel="stylesheet" href="file-selection.css">
+    <link rel="stylesheet" href="file-indicator.css">
+    <link rel="stylesheet" href="dark-mode.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>Ôn luyện Kinh tế Chính trị</h1>
+    <!-- Dark mode toggle button -->
+    <button id="theme-toggle" class="theme-toggle" title="Chuyển đổi chế độ sáng/tối">
+        <i class="fas fa-moon"></i>
+    </button>
+
+    <div class="container"><header>
+            <h1 id="app-title">Ôn luyện trắc nghiệm</h1>
         </header>
         
-        <div class="modes">
+        <!-- Current file indicator -->
+        <div id="current-file-indicator" class="current-file-indicator hidden">
+            <i class="fas fa-file-alt"></i> <span id="current-file-name"></span>
+        </div>
+        
+        <div class="file-selection">
+            <h2>Chọn bộ câu hỏi</h2>
+            <div class="file-buttons">
+                <button id="ktct-file" class="file-btn">
+                    <span class="file-name">Kinh tế Chính trị</span>
+                    <span class="file-code">KTCT</span>
+                </button>
+                <button id="nlmkt-file" class="file-btn">
+                    <span class="file-name">Nguyên lý Marketing</span>
+                    <span class="file-code">NLMKT</span>
+                </button>
+            </div>
+            <div class="back-button-container">
+                <button id="back-from-file-selection" class="back-btn">
+                    <i class="fas fa-arrow-left"></i> Quay lại
+                </button>
+            </div>
+        </div>        <div class="modes hidden">
             <h2>Chọn chế độ ôn tập</h2>
             <div class="mode-buttons">
                 <button id="chapter-mode" class="mode-btn">Ôn luyện theo chương</button>
                 <button id="random-mode" class="mode-btn">Ôn luyện ngẫu nhiên (40 câu)</button>
+                
+                
+            </div>
+            <!-- Question count selection for NLMKT -->
+                <div id="nlmkt-options" class="nlmkt-options hidden">
+                    <p class="options-label">Chọn số câu hỏi cho Nguyên lý Marketing:</p>
+                    <div class="question-count-buttons">
+                        <button id="nlmkt-40" class="question-count-btn">40 câu</button>
+                        <button id="nlmkt-50" class="question-count-btn">50 câu</button>
+                    </div>
+                </div>
+            <div class="change-file-container">
+                <button id="change-file-btn" class="change-file-btn">
+                    <i class="fas fa-exchange-alt"></i> Đổi bộ câu hỏi
+                </button>
             </div>
         </div>
         
@@ -88,13 +131,15 @@
             </div>
             <button id="back-to-results" class="control-btn">Quay lại kết quả</button>
         </div>
-    </div>
-      <footer>
+    </div>      <footer>
         <p class="text-center">Copyright &copy; Anhnguyen0812 | <a href="https://github.com/Anhnguyen0812/KinhteChinhtri" target="_blank" rel="noopener noreferrer">View Source on GitHub</a></p>
-        <p class="text-center">Link 840 câu hỏi trắc nghiệm KTCT: <a href="https://www.studocu.vn/vn/document/truong-dai-hoc-luat-thanh-pho-ho-chi-minh/kinh-te-chinh-tri-m-l/840-cau-trac-nghiem-ktct/124383496" target="_blank" rel="noopener noreferrer">Xem tài liệu</a></p>
-    </footer>
-    
-    <script src="script.js"></script>
+        <p class="text-center">Các bộ câu hỏi: 
+          <a href="https://www.studocu.vn/vn/document/truong-dai-hoc-luat-thanh-pho-ho-chi-minh/kinh-te-chinh-tri-m-l/840-cau-trac-nghiem-ktct/124383496" target="_blank" rel="noopener noreferrer">KTCT</a> | 
+          <a href="#" target="_blank" rel="noopener noreferrer">NLMKT</a>
+        </p>    </footer>
+      <script src="script.js"></script>
+    <script src="parser-fix.js"></script>
+    <script src="dark-mode.js"></script>
 
 </body>
 </html>

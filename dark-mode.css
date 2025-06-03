@@ -1,0 +1,515 @@
+/* Dark Mode Styles */
+:root {
+    /* Light theme colors (default) */
+    --bg-gradient-start: #f5f7fa;
+    --bg-gradient-end: #c3cfe2;
+    --container-bg: #ffffff;
+    --text-primary: #333333;
+    --text-secondary: #666666;
+    --text-muted: #61696f;
+    --border-color: #e0e0e0;
+    --border-light: #ddd;
+    --accent-primary: #007bff;
+    --accent-secondary: #0056b3;
+    --surface-bg: #f8f9fa;
+    --surface-hover: #f0f7ff;
+    --success-bg: #d4edda;
+    --success-color: #28a745;
+    --error-bg: #f8d7da;
+    --error-color: #dc3545;
+    --warning-color: #fd7e14;
+    --info-color: #17a2b8;
+    --shadow-light: rgba(0, 0, 0, 0.1);
+    --shadow-medium: rgba(0, 0, 0, 0.15);
+    --shadow-dark: rgba(0, 0, 0, 0.2);
+    --overlay-bg: rgba(255, 255, 255, 0.9);
+}
+
+/* Dark theme */
+[data-theme="dark"] {
+    --bg-gradient-start: #1a1a1a;
+    --bg-gradient-end: #2d3748;
+    --container-bg: #2d3748;
+    --text-primary: #e2e8f0;
+    --text-secondary: #a0aec0;
+    --text-muted: #718096;
+    --border-color: #4a5568;
+    --border-light: #4a5568;
+    --accent-primary: #3182ce;
+    --accent-secondary: #2c5aa0;
+    --surface-bg: #1a202c;
+    --surface-hover: #2d3748;
+    --success-bg: #22543d;
+    --success-color: #68d391;
+    --error-bg: #742a2a;
+    --error-color: #fc8181;
+    --warning-color: #ed8936;
+    --info-color: #4299e1;
+    --shadow-light: rgba(0, 0, 0, 0.3);
+    --shadow-medium: rgba(0, 0, 0, 0.4);
+    --shadow-dark: rgba(0, 0, 0, 0.5);
+    --overlay-bg: rgba(26, 32, 44, 0.9);
+}
+
+/* Apply CSS variables to existing styles */
+body {
+    background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+    color: var(--text-primary);
+}
+
+.container {
+    background: var(--container-bg);
+    box-shadow: 0 10px 30px var(--shadow-light);
+}
+
+/* Header */
+header h1 {
+    color: var(--accent-primary);
+}
+
+header {
+    border-bottom: 3px solid var(--accent-primary);
+}
+
+/* Section styles */
+.section {
+    background: var(--container-bg);
+    box-shadow: 0 2px 10px var(--shadow-light);
+}
+
+.section:hover {
+    box-shadow: 0 4px 20px var(--shadow-medium);
+}
+
+h2 {
+    color: var(--accent-primary);
+}
+
+/* Text colors */
+.chapter-btn .question-count {
+    color: var(--text-secondary);
+}
+
+/* Mode buttons */
+.mode-btn {
+    background: linear-gradient(to right, var(--accent-primary), var(--accent-secondary));
+    color: white;
+    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
+}
+
+.mode-btn:hover {
+    background: linear-gradient(to right, var(--accent-secondary), #003f7f);
+    box-shadow: 0 6px 12px rgba(0, 123, 255, 0.3);
+}
+
+/* Chapter buttons */
+.chapter-btn {
+    background-color: var(--container-bg);
+    color: var(--text-primary);
+    border: 2px solid var(--border-light);
+    box-shadow: 0 3px 5px var(--shadow-light);
+}
+
+.chapter-btn:hover {
+    background-color: var(--surface-hover);
+    border-color: var(--accent-primary);
+    box-shadow: 0 5px 10px var(--shadow-medium);
+}
+
+/* Quiz elements */
+#quiz-header {
+    border-bottom: 2px solid var(--border-light);
+}
+
+#question-text {
+    color: var(--text-primary);
+    background-color: var(--surface-bg);
+    border-left: 4px solid var(--accent-primary);
+}
+
+/* Options */
+.option {
+    border: 1px solid var(--border-color);
+    background: var(--container-bg);
+    color: var(--text-primary);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+}
+
+.option:hover {
+    background: var(--surface-hover);
+    border-color: var(--accent-primary);
+}
+
+.option.selected {
+    border-color: var(--accent-primary);
+    background: var(--surface-hover);
+    box-shadow: 0 3px 8px rgba(0, 123, 255, 0.15);
+}
+
+.option.correct {
+    border-color: var(--success-color);
+    background: var(--success-bg);
+    box-shadow: 0 3px 8px rgba(40, 167, 69, 0.15);
+}
+
+.option.incorrect {
+    border-color: var(--error-color);
+    background: var(--error-bg);
+    box-shadow: 0 3px 8px rgba(220, 53, 69, 0.15);
+}
+
+/* Key hints */
+.key-hint {
+    background-color: rgba(0, 123, 255, 0.1);
+    color: var(--accent-primary);
+    border-right: 1px solid var(--border-color);
+}
+
+.option.correct .key-hint {
+    background-color: rgba(40, 167, 69, 0.2);
+    color: var(--success-color);
+    border-right-color: var(--success-color);
+}
+
+.option.incorrect .key-hint {
+    background-color: rgba(220, 53, 69, 0.2);
+    color: var(--error-color);
+    border-right-color: var(--error-color);
+}
+
+/* Feedback messages */
+.feedback-message {
+    background: var(--surface-bg);
+    border-left: 5px solid var(--accent-primary);
+    color: var(--text-primary);
+}
+
+.correct-feedback {
+    color: var(--success-color);
+}
+
+.incorrect-feedback {
+    color: var(--error-color);
+}
+
+/* Control buttons */
+.control-btn {
+    background: linear-gradient(to right, var(--accent-primary), var(--accent-secondary));
+    color: white;
+    box-shadow: 0 4px 6px var(--shadow-light);
+}
+
+.control-btn:hover {
+    background: linear-gradient(to right, var(--accent-secondary), #003f7f);
+    box-shadow: 0 6px 10px var(--shadow-medium);
+}
+
+.control-btn:disabled {
+    background: #666;
+    color: #999;
+}
+
+/* Main button variant */
+.main-btn {
+    background: linear-gradient(to right, #6c757d, #495057);
+}
+
+.main-btn:hover {
+    background: linear-gradient(to right, #5a6268, #343a40);
+}
+
+/* Submit button */
+#submit-btn {
+    background: linear-gradient(to right, var(--success-color), #218838);
+    box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3);
+}
+
+#submit-btn:hover {
+    box-shadow: 0 6px 15px rgba(40, 167, 69, 0.4);
+}
+
+/* Navigation panel */
+#question-navigation-panel {
+    border: 1px solid var(--border-color);
+    background-color: var(--surface-bg);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+#question-navigation-panel h3 {
+    color: var(--accent-primary);
+}
+
+.nav-question-btn {
+    border: 1px solid var(--accent-primary);
+    background-color: var(--container-bg);
+    color: var(--accent-primary);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.nav-question-btn:hover {
+    background-color: var(--surface-hover);
+    box-shadow: 0 4px 8px var(--shadow-light);
+}
+
+.nav-question-btn.current {
+    background-color: var(--accent-primary);
+    color: white;
+    box-shadow: 0 3px 8px rgba(0, 123, 255, 0.3);
+}
+
+.nav-question-btn.answered {
+    background-color: #6c757d;
+    color: white;
+    border-color: #6c757d;
+}
+
+.nav-question-btn.answered.current {
+    background-color: #495057;
+    color: white;
+    border-color: #495057;
+}
+
+/* Results */
+#score-display {
+    background-color: var(--surface-bg);
+}
+
+#score {
+    color: var(--accent-primary);
+}
+
+.result-item.correct {
+    background-color: var(--success-bg);
+}
+
+.result-item.incorrect {
+    background-color: var(--error-bg);
+}
+
+/* Review */
+.review-item {
+    border-bottom: 1px solid var(--border-light);
+}
+
+.review-question {
+    color: var(--text-primary);
+}
+
+.repeat-badge {
+    background-color: var(--warning-color);
+}
+
+.correct-answer {
+    background-color: var(--success-bg);
+    border-left: 3px solid var(--success-color);
+}
+
+.wrong-answer {
+    background-color: var(--error-bg);
+    border-left: 3px solid var(--error-color);
+}
+
+/* Keyboard tip */
+.keyboard-tip {
+    background-color: var(--surface-bg);
+    border-left: 4px solid var(--accent-primary);
+    color: var(--text-primary);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.keyboard-tip strong {
+    background-color: var(--border-color);
+    color: var(--accent-primary);
+}
+
+/* Footer */
+footer {
+    color: var(--text-muted);
+}
+
+footer a {
+    color: var(--accent-primary);
+}
+
+footer a:hover {
+    color: var(--accent-secondary);
+}
+
+/* File selection styles */
+.file-btn {
+    background: var(--info-color);
+    color: white;
+    box-shadow: 0 4px 6px var(--shadow-light);
+}
+
+.file-btn:hover {
+    background: #138496;
+    box-shadow: 0 6px 12px var(--shadow-medium);
+}
+
+.file-btn.active-file {
+    background: #2c3e50;
+    border: 2px solid #fff;
+    box-shadow: 0 0 15px rgba(106, 137, 204, 0.7);
+}
+
+.file-btn.active-file .file-name {
+    color: #fff;
+}
+
+.file-btn.active-file .file-code {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.file-code {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+/* Back button */
+.back-btn {
+    background-color: #6c757d;
+    color: white;
+    box-shadow: 0 3px 6px var(--shadow-light);
+}
+
+.back-btn:hover {
+    background-color: #5a6268;
+    box-shadow: 0 5px 10px var(--shadow-medium);
+}
+
+/* Change file button */
+.change-file-btn {
+    background-color: var(--info-color);
+    color: white;
+    box-shadow: 0 3px 6px var(--shadow-light);
+}
+
+.change-file-btn:hover {
+    background-color: #138496;
+    box-shadow: 0 5px 10px var(--shadow-medium);
+}
+
+/* NLMKT options */
+.nlmkt-options {
+    background-color: rgba(23, 162, 184, 0.1);
+    border: 1px solid rgba(23, 162, 184, 0.3);
+}
+
+.options-label {
+    color: var(--info-color);
+}
+
+.question-count-btn {
+    background-color: var(--info-color);
+    color: white;
+    box-shadow: 0 3px 6px rgba(23, 162, 184, 0.2);
+}
+
+.question-count-btn:hover {
+    background-color: #138496;
+    box-shadow: 0 5px 10px rgba(23, 162, 184, 0.3);
+}
+
+.question-count-btn.selected {
+    background-color: #0f5c75;
+    box-shadow: 0 0 15px rgba(23, 162, 184, 0.5);
+}
+
+/* Loading indicator */
+.loading-indicator {
+    background: var(--overlay-bg);
+    box-shadow: 0 5px 15px var(--shadow-medium);
+    color: var(--text-primary);
+}
+
+.loading-indicator p {
+    color: var(--accent-primary);
+}
+
+/* Repeated questions summary */
+.repeated-questions-summary {
+    border-top: 1px dashed var(--border-color);
+}
+
+.repeated-questions-summary h4 {
+    color: var(--warning-color);
+}
+
+.repeated-questions-summary li:before {
+    color: var(--warning-color);
+}
+
+/* Dark mode toggle button */
+.theme-toggle {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background: var(--accent-primary);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    cursor: pointer;
+    box-shadow: 0 4px 8px var(--shadow-medium);
+    transition: all 0.3s ease;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+.theme-toggle:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px var(--shadow-dark);
+    background: var(--accent-secondary);
+}
+
+.theme-toggle:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 8px var(--shadow-medium);
+}
+
+/* Current file indicator */
+.current-file-indicator {
+    background-color: var(--surface-bg);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 2px 4px var(--shadow-light);
+}
+
+.current-file-indicator i {
+    color: var(--accent-primary);
+}
+
+/* Responsive adjustments for dark mode */
+@media (max-width: 767px) {
+    .theme-toggle {
+        top: 15px;
+        right: 15px;
+        width: 45px;
+        height: 45px;
+        font-size: 1.1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .theme-toggle {
+        top: 10px;
+        right: 10px;
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+    }
+}
+
+/* Animation for theme transition */
+* {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Override transitions for elements that should not transition */
+.option, .control-btn, .mode-btn, .chapter-btn, .file-btn {
+    transition: all 0.3s ease !important;
+}
