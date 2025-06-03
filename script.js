@@ -15,7 +15,7 @@ let originalQuestionCount = 0; // Track the original number of questions before 
 let currentQuestionFile = 'ktct.txt'; // Default file to load
 let questionFileTitles = {
     'ktct.txt': 'Kinh tế Chính trị',
-    'nlmkt.txt': 'Nguyên lý Mac-Lenin'
+    'nlmkt.txt': 'Nguyên lý Marketing'
 };
 let previousScreen = 'modes'; // Track which screen to return to when going back from file selection
 let selectedQuestionCount = 40; // Default question count for random mode
