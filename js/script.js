@@ -12,10 +12,10 @@ let chapters = {};
 let showingFeedback = false; // Flag to indicate if we're showing feedback
 let navigationPanelVisible = true; // Flag to track navigation panel visibility
 let originalQuestionCount = 0; // Track the original number of questions before adding repeats
-let currentQuestionFile = '../documents/ktct.txt'; // Default file to load
+let currentQuestionFile = './documents/ktct.txt'; // Default file to load
 let questionFileTitles = {
-    '../documents/ktct.txt': 'Kinh tế Chính trị',
-    '../documents/nlmkt.txt': 'Nguyên lý Marketing'
+    './documents/ktct.txt': 'Kinh tế Chính trị',
+    './documents/nlmkt.txt': 'Nguyên lý Marketing'
 };
 let previousScreen = 'modes'; // Track which screen to return to when going back from file selection
 let selectedQuestionCount = 40; // Default question count for random mode
@@ -78,8 +78,8 @@ function hideAllSections() {
 
 // Event listeners
 document.addEventListener('DOMContentLoaded', initialize);
-ktctFileBtn.addEventListener('click', () => selectQuestionFile('../documents/ktct.txt'));
-nlmktFileBtn.addEventListener('click', () => selectQuestionFile('../documents/nlmkt.txt'));
+ktctFileBtn.addEventListener('click', () => selectQuestionFile('./documents/ktct.txt'));
+nlmktFileBtn.addEventListener('click', () => selectQuestionFile('./documents/nlmkt.txt'));
 backFromFileBtn.addEventListener('click', goBackFromFileSelection);
 changeFileBtn.addEventListener('click', changeQuestionFile);
 nlmkt40Btn.addEventListener('click', () => selectQuestionCount(40));
@@ -312,7 +312,7 @@ function updateUIWithSelectedFile(fileName) {
     updateRandomModeButton();
 }
 
-function loadQuestions(fileName = '../documents/ktct.txt') {
+function loadQuestions(fileName = './documents/ktct.txt') {
     return new Promise(async (resolve, reject) => {
         try {
             // Try to fetch the file using fetch API
@@ -370,7 +370,7 @@ function loadQuestions(fileName = '../documents/ktct.txt') {
     });
 }
 
-function parseQuestions(data, fileName = '../documents/ktct.txt') {
+function parseQuestions(data, fileName = './documents/ktct.txt') {
     questions = []; // Reset global questions array before parsing
     try {
         if (!data || data.trim() === '') {
@@ -571,7 +571,7 @@ function startChapterMode(chapterNumber) {
 
 function startRandomMode() {
     // Use selectedQuestionCount for question count logic
-    const questionCount = (currentQuestionFile === '../documents/nlmkt.txt') ? selectedQuestionCount : 40;
+    const questionCount = (currentQuestionFile === './documents/nlmkt.txt') ? selectedQuestionCount : 40;
     
     if (questions.length < questionCount) {
         alert(`Không đủ câu hỏi để tạo đề ngẫu nhiên. Cần ít nhất ${questionCount} câu hỏi.`);
@@ -600,7 +600,7 @@ function getRandomQuestions(allQuestions, count) {
 // Function to show random chapter selection
 function showRandomChapterSelection() {
     // Only allow this feature for KTCT (not for NLMKT)
-    if (currentQuestionFile !== '../documents/ktct.txt') {
+    if (currentQuestionFile !== './documents/ktct.txt') {
         alert('Chức năng này chỉ áp dụng cho bộ câu hỏi Kinh tế Chính trị.');
         return;
     }
@@ -1340,9 +1340,9 @@ function updateActiveFileButton(fileName) {
     nlmktFileBtn.classList.remove('active-file');
     
     // Then, add active class to the selected file button
-    if (fileName === '../documents/ktct.txt') {
+    if (fileName === './documents/ktct.txt') {
         ktctFileBtn.classList.add('active-file');
-    } else if (fileName === '../documents/nlmkt.txt') {
+    } else if (fileName === './documents/nlmkt.txt') {
         nlmktFileBtn.classList.add('active-file');
     }
 }
@@ -1367,7 +1367,7 @@ function selectQuestionCount(count) {
 
 // Function to update the random mode button text based on current file and selected count
 function updateRandomModeButton() {
-    if (currentQuestionFile === '../documents/nlmkt.txt') {
+    if (currentQuestionFile === './documents/nlmkt.txt') {
         randomModeBtn.innerHTML = `Ôn luyện ngẫu nhiên <span class="question-count">(${selectedQuestionCount}/${questions.length} câu)</span>`;
     } else {
         randomModeBtn.innerHTML = `Ôn luyện ngẫu nhiên <span class="question-count">(40/${questions.length} câu)</span>`;
@@ -1376,7 +1376,7 @@ function updateRandomModeButton() {
 
 // Function to show/hide NLMKT options based on selected file
 function toggleNLMKTOptions() {
-    if (currentQuestionFile === '../documents/nlmkt.txt') {
+    if (currentQuestionFile === './documents/nlmkt.txt') {
         nlmktOptions.classList.remove('hidden');
         // Set default selection if none is selected
         if (!nlmkt40Btn.classList.contains('selected') && !nlmkt50Btn.classList.contains('selected')) {
@@ -1391,7 +1391,7 @@ function toggleNLMKTOptions() {
 // Function to show random chapter selection
 function showRandomChapterSelection() {
     // Only allow this feature for KTCT (not for NLMKT)
-    if (currentQuestionFile !== '../documents/ktct.txt') {
+    if (currentQuestionFile !== './documents/ktct.txt') {
         alert('Chức năng này chỉ áp dụng cho bộ câu hỏi Kinh tế Chính trị.');
         return;
     }
