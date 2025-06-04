@@ -312,7 +312,7 @@ function updateUIWithSelectedFile(fileName) {
     updateRandomModeButton();
 }
 
-function loadQuestions(fileName = 'ktct.txt') {
+function loadQuestions(fileName = '../documents/ktct.txt') {
     return new Promise(async (resolve, reject) => {
         try {
             // Try to fetch the file using fetch API
@@ -370,7 +370,7 @@ function loadQuestions(fileName = 'ktct.txt') {
     });
 }
 
-function parseQuestions(data, fileName = 'ktct.txt') {
+function parseQuestions(data, fileName = '../documents/ktct.txt') {
     questions = []; // Reset global questions array before parsing
     try {
         if (!data || data.trim() === '') {
@@ -1340,9 +1340,9 @@ function updateActiveFileButton(fileName) {
     nlmktFileBtn.classList.remove('active-file');
     
     // Then, add active class to the selected file button
-    if (fileName === 'ktct.txt') {
+    if (fileName === '../documents/ktct.txt') {
         ktctFileBtn.classList.add('active-file');
-    } else if (fileName === 'nlmkt.txt') {
+    } else if (fileName === '../documents/nlmkt.txt') {
         nlmktFileBtn.classList.add('active-file');
     }
 }
@@ -1367,7 +1367,7 @@ function selectQuestionCount(count) {
 
 // Function to update the random mode button text based on current file and selected count
 function updateRandomModeButton() {
-    if (currentQuestionFile === 'nlmkt.txt') {
+    if (currentQuestionFile === '../documents/nlmkt.txt') {
         randomModeBtn.innerHTML = `Ôn luyện ngẫu nhiên <span class="question-count">(${selectedQuestionCount}/${questions.length} câu)</span>`;
     } else {
         randomModeBtn.innerHTML = `Ôn luyện ngẫu nhiên <span class="question-count">(40/${questions.length} câu)</span>`;
@@ -1376,7 +1376,7 @@ function updateRandomModeButton() {
 
 // Function to show/hide NLMKT options based on selected file
 function toggleNLMKTOptions() {
-    if (currentQuestionFile === 'nlmkt.txt') {
+    if (currentQuestionFile === '../documents/nlmkt.txt') {
         nlmktOptions.classList.remove('hidden');
         // Set default selection if none is selected
         if (!nlmkt40Btn.classList.contains('selected') && !nlmkt50Btn.classList.contains('selected')) {
@@ -1391,7 +1391,7 @@ function toggleNLMKTOptions() {
 // Function to show random chapter selection
 function showRandomChapterSelection() {
     // Only allow this feature for KTCT (not for NLMKT)
-    if (currentQuestionFile !== 'ktct.txt') {
+    if (currentQuestionFile !== '../documents/ktct.txt') {
         alert('Chức năng này chỉ áp dụng cho bộ câu hỏi Kinh tế Chính trị.');
         return;
     }
