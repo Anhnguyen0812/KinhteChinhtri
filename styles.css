@@ -754,6 +754,61 @@ footer a:hover {
     outline: none;
 }
 
+/* Random from chapter styles */
+#random-chapter-selection {
+    text-align: center;
+    padding: 20px;
+}
+
+.selection-description {
+    margin-bottom: 15px;
+    color: #666;
+    font-size: 16px;
+}
+
+.random-chapter-buttons {
+    margin-bottom: 20px;
+}
+
+.question-count-selector {
+    margin: 20px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+.question-count-selector label {
+    font-weight: bold;
+    color: #333;
+}
+
+.question-count-selector select {
+    padding: 8px 15px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    background-color: #f8f8f8;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.question-count-selector select:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+/* Dark mode support */
+.dark-mode .question-count-selector select {
+    background-color: #333;
+    color: #fff;
+    border-color: #555;
+}
+
+.dark-mode .selection-description {
+    color: #aaa;
+}
+
 /* Responsive design */
 @media (min-width: 1200px) {
     /* Desktop specific overrides */

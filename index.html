@@ -48,8 +48,7 @@
             <div class="mode-buttons">
                 <button id="chapter-mode" class="mode-btn">Ôn luyện theo chương</button>
                 <button id="random-mode" class="mode-btn">Ôn luyện ngẫu nhiên (40 câu)</button>
-                
-                
+                <button id="random-from-chapter-mode" class="mode-btn">Ôn tập ngẫu nhiên theo chương</button>
             </div>
             <!-- Question count selection for NLMKT -->
                 <div id="nlmkt-options" class="nlmkt-options hidden">
@@ -75,6 +74,24 @@
                 <button class="chapter-btn" data-chapter="4">Chương 4</button>
                 <button class="chapter-btn" data-chapter="5">Chương 5</button>
                 <button class="chapter-btn" data-chapter="6">Chương 6</button>
+            </div>
+        </div>
+        
+        <div id="random-chapter-selection" class="section hidden">
+            <h2>Chọn chương để làm bài ngẫu nhiên</h2>
+            <p class="selection-description">Chọn chương để lấy 20 câu hỏi ngẫu nhiên từ chương đó</p>
+            <div class="chapter-buttons random-chapter-buttons">
+                <!-- Chapter buttons will be added by JavaScript -->
+            </div>
+            <div class="question-count-selector">
+                <label for="random-chapter-question-count">Số câu hỏi:</label>
+                <select id="random-chapter-question-count">
+                    <option value="10">10 câu</option>
+                    <option value="15">15 câu</option>
+                    <option value="20" selected>20 câu</option>
+                    <option value="25">25 câu</option>
+                    <option value="30">30 câu</option>
+                </select>
             </div>
         </div>
         

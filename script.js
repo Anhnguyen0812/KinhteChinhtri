@@ -20,6 +20,9 @@ let questionFileTitles = {
 let previousScreen = 'modes'; // Track which screen to return to when going back from file selection
 let selectedQuestionCount = 40; // Default question count for random mode
 
+// Variables for random chapter mode
+let randomChapterQuestionCount = 20;
+
 // DOM Elements
 const ktctFileBtn = document.getElementById('ktct-file');
 const nlmktFileBtn = document.getElementById('nlmkt-file');
@@ -58,12 +61,16 @@ const appTitle = document.getElementById('app-title');
 // DOM Element for current file indicator
 const currentFileIndicator = document.getElementById('current-file-indicator');
 const currentFileName = document.getElementById('current-file-name');
+const randomFromChapterModeBtn = document.getElementById('random-from-chapter-mode');
+const randomChapterSelection = document.getElementById('random-chapter-selection');
+const randomChapterQuestionCountSelect = document.getElementById('random-chapter-question-count');
 
 // Function to hide all sections
 function hideAllSections() {
     document.querySelector('.file-selection').classList.add('hidden');
     document.querySelector('.modes').classList.add('hidden');
     chapterSelection.classList.add('hidden');
+    randomChapterSelection.classList.add('hidden');
     quizContainer.classList.add('hidden');
     resultsContainer.classList.add('hidden');
     reviewContainer.classList.add('hidden');
@@ -171,6 +178,10 @@ restartBtn.addEventListener('click', restartQuiz);
 backToResultsBtn.addEventListener('click', showResults);
 backToMainBtn.addEventListener('click', backToMainScreen);
 toggleNavigationBtn.addEventListener('click', toggleNavigationPanel);
+randomFromChapterModeBtn.addEventListener('click', showRandomChapterSelection);
+randomChapterQuestionCountSelect.addEventListener('change', function() {
+    randomChapterQuestionCount = parseInt(this.value);
+});
 
 // Functions
 async function initialize() {
@@ -584,6 +595,75 @@ function startRandomMode() {
 function getRandomQuestions(allQuestions, count) {
     const shuffled = [...allQuestions].sort(() => 0.5 - Math.random());
     return shuffled.slice(0, count);
+}
+
+// Function to show random chapter selection
+function showRandomChapterSelection() {
+    // Only allow this feature for KTCT (not for NLMKT)
+    if (currentQuestionFile !== 'ktct.txt') {
+        alert('Chức năng này chỉ áp dụng cho bộ câu hỏi Kinh tế Chính trị.');
+        return;
+    }
+    
+    hideAllSections();
+    randomChapterSelection.classList.remove('hidden');
+    
+    // Generate chapter buttons dynamically
+    const chapterButtonsContainer = randomChapterSelection.querySelector('.random-chapter-buttons');
+    chapterButtonsContainer.innerHTML = ''; // Clear existing buttons
+    
+    const chapterNumbers = Object.keys(chapters).sort((a, b) => parseInt(a) - parseInt(b));
+    
+    chapterNumbers.forEach(chapter => {
+        const questionCount = chapters[chapter].length;
+        const button = document.createElement('button');
+        button.className = 'chapter-btn';
+        button.setAttribute('data-chapter', chapter);
+        button.innerHTML = `Chương ${chapter} <span class="question-count">(${questionCount} câu)</span>`;
+        
+        button.addEventListener('click', () => startRandomChapterMode(chapter));
+        
+        chapterButtonsContainer.appendChild(button);
+    });
+}
+
+// Function to start random questions from a specific chapter
+function startRandomChapterMode(chapterNumber) {
+    console.log(`Starting random mode for chapter ${chapterNumber} with ${randomChapterQuestionCount} questions`);
+    
+    // Get the questions for the selected chapter
+    const chapterQuestions = chapters[chapterNumber] || [];
+    
+    if (chapterQuestions.length === 0) {
+        alert(`Không có câu hỏi cho Chương ${chapterNumber}. Vui lòng kiểm tra lại nội dung file câu hỏi.`);
+        return;
+    }
+    
+    // Check if we have enough questions
+    if (chapterQuestions.length < randomChapterQuestionCount) {
+        const confirmContinue = confirm(`Chương ${chapterNumber} chỉ có ${chapterQuestions.length} câu hỏi, ít hơn ${randomChapterQuestionCount} câu đã chọn. Bạn có muốn tiếp tục với tất cả ${chapterQuestions.length} câu không?`);
+        if (!confirmContinue) {
+            return;
+        }
+        // If user confirms, use all available questions
+        currentQuestions = [...chapterQuestions];
+    } else {
+        // Get random questions from the chapter
+        currentQuestions = getRandomQuestions(chapterQuestions, randomChapterQuestionCount);
+    }
+    
+    // Initialize quiz state
+    originalQuestionCount = currentQuestions.length;
+    userAnswers = Array(currentQuestions.length).fill(null);
+    currentQuestionIndex = 0;
+    incorrectQuestions = [];
+    repeatQuestionsQueue = [];
+    
+    // Update quiz title
+    quizTitle.textContent = `Kinh tế Chính trị - Chương ${chapterNumber} (${currentQuestions.length} câu ngẫu nhiên)`;
+    
+    // Start the quiz
+    startQuiz();
 }
 
 function startQuiz() {
@@ -1306,4 +1386,73 @@ function toggleNLMKTOptions() {
         nlmktOptions.classList.add('hidden');
         selectedQuestionCount = 40; // Reset to default for KTCT
     }
+}
+
+// Function to show random chapter selection
+function showRandomChapterSelection() {
+    // Only allow this feature for KTCT (not for NLMKT)
+    if (currentQuestionFile !== 'ktct.txt') {
+        alert('Chức năng này chỉ áp dụng cho bộ câu hỏi Kinh tế Chính trị.');
+        return;
+    }
+    
+    hideAllSections();
+    randomChapterSelection.classList.remove('hidden');
+    
+    // Generate chapter buttons dynamically
+    const chapterButtonsContainer = randomChapterSelection.querySelector('.random-chapter-buttons');
+    chapterButtonsContainer.innerHTML = ''; // Clear existing buttons
+    
+    const chapterNumbers = Object.keys(chapters).sort((a, b) => parseInt(a) - parseInt(b));
+    
+    chapterNumbers.forEach(chapter => {
+        const questionCount = chapters[chapter].length;
+        const button = document.createElement('button');
+        button.className = 'chapter-btn';
+        button.setAttribute('data-chapter', chapter);
+        button.innerHTML = `Chương ${chapter} <span class="question-count">(${questionCount} câu)</span>`;
+        
+        button.addEventListener('click', () => startRandomChapterMode(chapter));
+        
+        chapterButtonsContainer.appendChild(button);
+    });
+}
+
+// Function to start random questions from a specific chapter
+function startRandomChapterMode(chapterNumber) {
+    console.log(`Starting random mode for chapter ${chapterNumber} with ${randomChapterQuestionCount} questions`);
+    
+    // Get the questions for the selected chapter
+    const chapterQuestions = chapters[chapterNumber] || [];
+    
+    if (chapterQuestions.length === 0) {
+        alert(`Không có câu hỏi cho Chương ${chapterNumber}. Vui lòng kiểm tra lại nội dung file câu hỏi.`);
+        return;
+    }
+    
+    // Check if we have enough questions
+    if (chapterQuestions.length < randomChapterQuestionCount) {
+        const confirmContinue = confirm(`Chương ${chapterNumber} chỉ có ${chapterQuestions.length} câu hỏi, ít hơn ${randomChapterQuestionCount} câu đã chọn. Bạn có muốn tiếp tục với tất cả ${chapterQuestions.length} câu không?`);
+        if (!confirmContinue) {
+            return;
+        }
+        // If user confirms, use all available questions
+        currentQuestions = [...chapterQuestions];
+    } else {
+        // Get random questions from the chapter
+        currentQuestions = getRandomQuestions(chapterQuestions, randomChapterQuestionCount);
+    }
+    
+    // Initialize quiz state
+    originalQuestionCount = currentQuestions.length;
+    userAnswers = Array(currentQuestions.length).fill(null);
+    currentQuestionIndex = 0;
+    incorrectQuestions = [];
+    repeatQuestionsQueue = [];
+    
+    // Update quiz title
+    quizTitle.textContent = `Kinh tế Chính trị - Chương ${chapterNumber} (${currentQuestions.length} câu ngẫu nhiên)`;
+    
+    // Start the quiz
+    startQuiz();
 }
