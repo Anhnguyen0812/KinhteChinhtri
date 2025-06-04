@@ -12,10 +12,10 @@ let chapters = {};
 let showingFeedback = false; // Flag to indicate if we're showing feedback
 let navigationPanelVisible = true; // Flag to track navigation panel visibility
 let originalQuestionCount = 0; // Track the original number of questions before adding repeats
-let currentQuestionFile = 'ktct.txt'; // Default file to load
+let currentQuestionFile = '../documents/ktct.txt'; // Default file to load
 let questionFileTitles = {
-    'ktct.txt': 'Kinh tế Chính trị',
-    'nlmkt.txt': 'Nguyên lý Marketing'
+    '../documents/ktct.txt': 'Kinh tế Chính trị',
+    '../documents/nlmkt.txt': 'Nguyên lý Marketing'
 };
 let previousScreen = 'modes'; // Track which screen to return to when going back from file selection
 let selectedQuestionCount = 40; // Default question count for random mode
@@ -78,8 +78,8 @@ function hideAllSections() {
 
 // Event listeners
 document.addEventListener('DOMContentLoaded', initialize);
-ktctFileBtn.addEventListener('click', () => selectQuestionFile('ktct.txt'));
-nlmktFileBtn.addEventListener('click', () => selectQuestionFile('nlmkt.txt'));
+ktctFileBtn.addEventListener('click', () => selectQuestionFile('../documents/ktct.txt'));
+nlmktFileBtn.addEventListener('click', () => selectQuestionFile('../documents/nlmkt.txt'));
 backFromFileBtn.addEventListener('click', goBackFromFileSelection);
 changeFileBtn.addEventListener('click', changeQuestionFile);
 nlmkt40Btn.addEventListener('click', () => selectQuestionCount(40));
@@ -571,7 +571,7 @@ function startChapterMode(chapterNumber) {
 
 function startRandomMode() {
     // Use selectedQuestionCount for question count logic
-    const questionCount = (currentQuestionFile === 'nlmkt.txt') ? selectedQuestionCount : 40;
+    const questionCount = (currentQuestionFile === '../documents/nlmkt.txt') ? selectedQuestionCount : 40;
     
     if (questions.length < questionCount) {
         alert(`Không đủ câu hỏi để tạo đề ngẫu nhiên. Cần ít nhất ${questionCount} câu hỏi.`);
@@ -600,7 +600,7 @@ function getRandomQuestions(allQuestions, count) {
 // Function to show random chapter selection
 function showRandomChapterSelection() {
     // Only allow this feature for KTCT (not for NLMKT)
-    if (currentQuestionFile !== 'ktct.txt') {
+    if (currentQuestionFile !== '../documents/ktct.txt') {
         alert('Chức năng này chỉ áp dụng cho bộ câu hỏi Kinh tế Chính trị.');
         return;
     }
