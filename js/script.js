@@ -15,7 +15,8 @@ let originalQuestionCount = 0; // Track the original number of questions before 
 let currentQuestionFile = './documents/ktct.txt'; // Default file to load
 let questionFileTitles = {
     './documents/ktct.txt': 'Kinh tế Chính trị',
-    './documents/nlmkt.txt': 'Nguyên lý Marketing'
+    './documents/nlmkt.txt': 'Nguyên lý Marketing',
+    './documents/mmt.txt': 'Mạng Máy Tính'
 };
 let previousScreen = 'modes'; // Track which screen to return to when going back from file selection
 let selectedQuestionCount = 40; // Default question count for random mode
@@ -26,6 +27,7 @@ let randomChapterQuestionCount = 20;
 // DOM Elements
 const ktctFileBtn = document.getElementById('ktct-file');
 const nlmktFileBtn = document.getElementById('nlmkt-file');
+const mmtFileBtn = document.getElementById('mmt-file');
 const backFromFileBtn = document.getElementById('back-from-file-selection');
 const changeFileBtn = document.getElementById('change-file-btn');
 const nlmktOptions = document.getElementById('nlmkt-options');
@@ -80,6 +82,7 @@ function hideAllSections() {
 document.addEventListener('DOMContentLoaded', initialize);
 ktctFileBtn.addEventListener('click', () => selectQuestionFile('./documents/ktct.txt'));
 nlmktFileBtn.addEventListener('click', () => selectQuestionFile('./documents/nlmkt.txt'));
+mmtFileBtn.addEventListener('click', () => selectQuestionFile('./documents/mmt.txt'));
 backFromFileBtn.addEventListener('click', goBackFromFileSelection);
 changeFileBtn.addEventListener('click', changeQuestionFile);
 nlmkt40Btn.addEventListener('click', () => selectQuestionCount(40));
@@ -1338,12 +1341,15 @@ function updateActiveFileButton(fileName) {
     // First, remove active class from all file buttons
     ktctFileBtn.classList.remove('active-file');
     nlmktFileBtn.classList.remove('active-file');
+    mmtFileBtn.classList.remove('active-file');
     
     // Then, add active class to the selected file button
     if (fileName === './documents/ktct.txt') {
         ktctFileBtn.classList.add('active-file');
     } else if (fileName === './documents/nlmkt.txt') {
         nlmktFileBtn.classList.add('active-file');
+    } else if (fileName === './documents/mmt.txt') {
+        mmtFileBtn.classList.add('active-file');
     }
 }
 
